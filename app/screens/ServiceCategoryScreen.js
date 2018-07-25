@@ -16,10 +16,15 @@ import {
 } from 'react-native';
 import {ListItem} from 'react-native-elements';
 //import Icon from 'react-native-vector-icons'
+import {getServiceCategories} from '../../actions/serviceCategoryActions';
+
+//redux specific imports
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
 
 var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
 
-export default class ServiceScreen extends React.Component {
+export class ServiceCategoryScreen extends React.Component {
 
     constructor(props) {
       super(props);
@@ -84,7 +89,8 @@ export default class ServiceScreen extends React.Component {
       AsyncStorage.getItem('credentials').then(result => {
         console.log("credentials: " + JSON.parse(result));
         this.credentials = JSON.parse(result);
-        this.callAPI('servicecat');
+        //this.callAPI('servicecat');
+        this.props.actions.getServiceCategories();
       }).catch(reason => {
         console.log(`componentDidMount:ERROR ${reason}`);
       });
@@ -114,7 +120,8 @@ export default class ServiceScreen extends React.Component {
                 <ScrollView style={{backgroundColor: '#ffffff', flex: 1}} >
                     <ListView 
                         contentContainerStyle={styles.grid}
-                        dataSource={this.state.servicecategories}
+                        //dataSource={this.state.servicecategories}
+                        dataSource={ds.cloneWithRows(this.props.serviceCategories)}
                         renderRow={(item, index) => this.renderGridItem(item, index)}
                     />
                 </ScrollView>                    
@@ -122,6 +129,20 @@ export default class ServiceScreen extends React.Component {
         );
     }
 }
+
+function mapStateToProps(state, ownProps) {
+  return {
+      ...state
+  };
+}
+
+function mapDispatchToProps(dispatch, ownProps) {
+  return {
+      actions: bindActionCreators({getServiceCategories}, dispatch)
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(ServiceCategoryScreen);
 
 const styles = StyleSheet.create({
   servicecatcontainer: {
@@ -203,21 +224,24 @@ const styles = StyleSheet.create({
     fontSize: 16
   },
   grid: {
-    justifyContent: 'center',
+    justifyContent: 'space-evenly',
     flexDirection: 'row',
     flexWrap: 'wrap',
     flex: 1,
+    paddingTop: 15,
+    paddingBottom: 15,
+    alignItems: 'stretch'
   },
   gridItem: {
       margin:5,
-      width: 150,
-      height: 150,
+      width: 100, //150,
+      height: 100, //150,
       justifyContent: 'center',
       alignItems: 'center',
   },
   gridItemImage: {
-      width: 100,
-      height: 100,
+      width: 70, //100,
+      height: 70, //100,
       borderWidth: 1.5, 
       borderColor: 'blue',
       borderRadius: 50,
@@ -227,7 +251,7 @@ const styles = StyleSheet.create({
   gridItemText: {
       marginTop: 5,
       textAlign:'center',
-      fontSize: 18,
+      fontSize: 14, //18
       color: '#d34a2e'
   }
 });

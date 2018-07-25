@@ -13,8 +13,11 @@ import {
 } from 'react-native';
 import {ListItem} from 'react-native-elements';
 import Icon from 'react-native-vector-icons'
+//redux specific imports
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
 
-export default class ServiceScreen extends React.Component {
+export class ServiceScreen extends React.Component {
 
     constructor(props) {
       super(props);
@@ -52,6 +55,20 @@ export default class ServiceScreen extends React.Component {
         );
     }
 }
+
+function mapStateToProps(state, ownProps) {
+  return {
+      ...state
+  };
+}
+
+// function mapDispatchToProps(dispatch, ownProps) {
+//   return {
+//       actions: bindActionCreators(getServiceCategories, dispatch)
+//   }
+// }
+
+export default connect(mapStateToProps)(ServiceScreen);
 
 const styles = StyleSheet.create({
   container: {

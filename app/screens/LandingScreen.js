@@ -19,10 +19,17 @@ import {
 } from 'react-native';
 import {ListItem} from 'react-native-elements';
 import Icon from 'react-native-vector-icons'
-import Router from '../routes';
+import { YellowBox } from 'react-native'
+//redux
+import {connect} from 'react-redux';
+//import {bindActionCreators} from 'redux';
+
+YellowBox.ignoreWarnings(['Warning: isMounted(...) is deprecated'])
+
+//import Router from '../routes';
 //import {AppRegistry} from 'react-native';
 
-export default class LandingScreen extends React.Component {
+export class LandingScreen extends React.Component {
     constructor(props) {
         super(props);
         this.credentials = this.props.navigation.state.params.credentials;
@@ -60,12 +67,29 @@ export default class LandingScreen extends React.Component {
                 backgroundColor="blue"
                 barStyle="light-content"/>
                 <View style={styles.container}>
-                    <Text>I am landing screen</Text>
+                    <Text>I am landing screen ({this.props.currentUser.username}) - {this.props.currentUser.type}</Text>
                 </View>
             </View>
         );
     }
 }
+
+
+function mapStateToProps(state, ownProps) {
+  //console.log("mapState2Props : " + (state.currentUser) + " - " + state.currentUser.length);
+
+  return {
+      ...state
+  };
+}
+
+// function mapDispatchToProps(dispatch, ownProps) {
+//     return {
+//         someactions: bindActionCreators(userActions, dispatch)
+//     }
+// }
+
+export default connect(mapStateToProps)(LandingScreen);
 
 const styles = StyleSheet.create({
     container: {

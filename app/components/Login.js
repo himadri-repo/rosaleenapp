@@ -16,11 +16,15 @@ import {StackActions, NavigationActions} from 'react-navigation';
 import Auth0 from 'react-native-auth0';
 import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
+//redux
+import {connect} from 'react-redux';
+//import {bindActionCreators} from 'redux';
+
 
 var credentials = require('../AuthCredential');
 const auth0 = new Auth0(credentials);
 
-export default class Login extends React.Component {
+export class Login extends React.Component {
     constructor(props) {
         super(props);
         this.state = { viewLogin: true };
@@ -153,6 +157,20 @@ export default class Login extends React.Component {
         );
     }
 }
+
+function mapStateToProps(state, ownProps) {
+    return {
+        ...state
+    };
+}
+
+// function mapDispatchToProps(dispatch, ownProps) {
+//     return {
+//         someactions: bindActionCreators(userActions, dispatch)
+//     }
+// }
+
+export default connect(mapStateToProps)(Login);
 
 const styles = StyleSheet.create({
     container: {

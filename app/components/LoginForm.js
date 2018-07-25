@@ -8,8 +8,11 @@ import {
     StatusBar,
     View
 } from 'react-native';
+//redux
+import {connect} from 'react-redux';
+//import {bindActionCreators} from 'redux';
 
-export default class LoginForm extends Component {
+export class LoginForm extends Component {
     constructor(props) {
         super(props);
         this.state = { username: "", password: "", usernameError: false, passwordError: false }
@@ -73,6 +76,20 @@ export default class LoginForm extends Component {
         );
     }
 }
+
+function mapStateToProps(state, ownProps) {
+    return {
+        ...state
+    };
+}
+
+// function mapDispatchToProps(dispatch, ownProps) {
+//     return {
+//         someactions: bindActionCreators(userActions, dispatch)
+//     }
+// }
+
+export default connect(mapStateToProps)(LoginForm);
 
 const styles = StyleSheet.create({
     container: {

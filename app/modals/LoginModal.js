@@ -4,8 +4,12 @@ import {
     Modal
 } from 'react-native';
 import Login from '../components/Login'
+//redux
+import {connect} from 'react-redux';
+//import {bindActionCreators} from 'redux';
 
-export default class LoginModal extends React.Component {
+
+export class LoginModal extends React.Component {
     constructor(props) {
       super(props);
 
@@ -34,5 +38,19 @@ export default class LoginModal extends React.Component {
         );
     }
 }
+
+function mapStateToProps(state, ownProps) {
+    return {
+        ...state
+    };
+}
+
+// function mapDispatchToProps(dispatch, ownProps) {
+//     return {
+//         someactions: bindActionCreators(userActions, dispatch)
+//     }
+// }
+
+export default connect(mapStateToProps)(LoginModal);
 
 //jshint ignore:end
