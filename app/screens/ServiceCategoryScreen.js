@@ -15,6 +15,7 @@ import {
   ListView
 } from 'react-native';
 import {ListItem} from 'react-native-elements';
+import {withNavigationFocus, StackActions} from 'react-navigation';
 //import Icon from 'react-native-vector-icons'
 import {getServiceCategories} from '../../actions/serviceCategoryActions';
 
@@ -30,14 +31,39 @@ export class ServiceCategoryScreen extends React.Component {
       super(props);
       this.profile = {name: '', picture: ''};
       this.state = {userlist: [{}], postlist: [{}], api: '', servicecategories: ds};
-      console.log("Services : " + JSON.stringify(this.props));
+      //console.log("Services : " + JSON.stringify(this.props));
       //this.itemClicked = this.itemClicked.bind(this);
     }
-  
+    
     // static navigationOptions = ({ navigation }) => ({
-    //     title: 'Services',
-    //     headerRight: <Button title="Logout" onPress={() => navigation.navigate('Home')} />
+    //     title: 'Service Categories',
+    //     /*headerRight: <Button title="Logout" onPress={() => navigation.navigate('Home')} />,*/
+    //     tabBarOnPress: ({navigation, defaultHandler}) => {
+    //       console.log('tabBarOnPress [Service Category] clicked\n');
+    //       if(navigation.isFocused()) {
+    //         console.log('\nService Category Screen got the focus on press tabBarOnPress');
+    //         return;
+    //       }
+
+    //       navigation.state.params.onTabFocus();
+    //       defaultHandler();
+    //     },
     // });
+
+    // static navigationOptions = () => {
+    //   return {
+    //     tabBarOnPress: ({navigation, defaultHandler}) => {
+    //       console.log('tabBarOnPress [Service Category] clicked\n');
+    //       if(navigation.isFocused()) {
+    //         console.log('\nService Category Screen got the focus on press tabBarOnPress');
+    //         return;
+    //       }
+
+    //       navigation.state.params.onTabFocus();
+    //       defaultHandler();
+    //     },
+    //   };
+    // };
 
     callAPI = (api) => {
       let url = '';
@@ -87,7 +113,7 @@ export class ServiceCategoryScreen extends React.Component {
 
     componentDidMount = () => {
       AsyncStorage.getItem('credentials').then(result => {
-        console.log("credentials: " + JSON.parse(result));
+        //console.log("credentials: " + JSON.parse(result));
         this.credentials = JSON.parse(result);
         //this.callAPI('servicecat');
         this.props.actions.getServiceCategories();
@@ -96,9 +122,13 @@ export class ServiceCategoryScreen extends React.Component {
       });
     };
     
+    pressItem(serviceCategoryItem) { 
+      this.props.navigation.navigate('ServiceTabLanding', {serviceCategory: serviceCategoryItem});
+    }
+
     renderGridItem(item, index) {
       return (
-        <TouchableOpacity style={styles.gridItem}>
+        <TouchableOpacity style={styles.gridItem} onPress={()=> this.pressItem(item)}>
           <View style={styles.gridItemImage}>
               <Text style={{fontSize:25, color:'blue'}}>
                   {item.name}
@@ -111,6 +141,10 @@ export class ServiceCategoryScreen extends React.Component {
 
     render() {
         let titleSection = null;
+        //console.log("\nFocused [ServiceCat]: " + this.props.isFocused);
+        if(!this.props.isFocused) {
+          return null;
+        }
 
         return (
             <View style={styles.rootcontainer}>
@@ -142,7 +176,7 @@ function mapDispatchToProps(dispatch, ownProps) {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(ServiceCategoryScreen);
+export default connect(mapStateToProps, mapDispatchToProps)(withNavigationFocus(ServiceCategoryScreen));
 
 const styles = StyleSheet.create({
   servicecatcontainer: {

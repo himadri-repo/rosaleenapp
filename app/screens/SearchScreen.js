@@ -25,7 +25,7 @@ export default class SearchScreen extends React.Component {
       super(props);
       this.profile = {name: '', picture: ''};
       this.state = {userlist: [{}], postlist: [{}], api: '', servicecategories: ds};
-      console.log("Search : " + JSON.stringify(this.props));
+      //console.log("Search : " + JSON.stringify(this.props));
       //this.itemClicked = this.itemClicked.bind(this);
     }
   

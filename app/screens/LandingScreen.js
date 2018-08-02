@@ -38,19 +38,19 @@ export class LandingScreen extends React.Component {
         
         //Alert.alert("Title", 'In Landing...');
 
-        console.log("Credentials : " + JSON.stringify(this.credentials));
-        console.log("Profile : " + JSON.stringify(this.profile));
+        //console.log("Credentials : " + JSON.stringify(this.credentials));
+        //console.log("Profile : " + JSON.stringify(this.profile));
 
 
         AsyncStorage.setItem('credentials', JSON.stringify(this.credentials)).then(result => {
-          console.log(`[credentials] Value saved to state ${result}`);
+          //console.log(`[credentials] Value saved to state ${result}`);
         }).catch(reason=> {
-          console.log('credentials:ERROR: ' + reason);
+          //console.log('credentials:ERROR: ' + reason);
         });
         AsyncStorage.setItem('profile', JSON.stringify(this.profile)).then(result => {
-          console.log(`[profile] Value saved to state ${result}`);
+          //console.log(`[profile] Value saved to state ${result}`);
         }).catch(reason=> {
-          console.log('profile:ERROR: ' + reason);
+          //console.log('profile:ERROR: ' + reason);
         });
         //this.itemClicked = this.itemClicked.bind(this);
     }

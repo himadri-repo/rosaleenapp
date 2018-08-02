@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import {ListItem} from 'react-native-elements';
 import Icon from 'react-native-vector-icons'
+import {withNavigationFocus, StackActions, NavigationActions} from 'react-navigation';
 //redux specific imports
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -29,21 +30,39 @@ export class ServiceScreen extends React.Component {
   
       /*this.credentials = this.props.navigation.state.params.credentials;
       this.profile = this.props.navigation.state.params.profile;*/
-      this.profile ={name: '', picture: ''};
+      this.profile = {name: '', picture: ''};
       this.state = {userlist: [{}], postlist: [{}], api: ''};
+      this.state.category = {};
+      if(this.props.navigation.state.params) {
+        this.state.category = this.props.navigation.state.params.serviceCategory.name;
+      }
       
-      console.log("Services : " + JSON.stringify(this.props));
+      //console.log("Services : " + JSON.stringify(this.props));
   
       //this.itemClicked = this.itemClicked.bind(this);
     }
+
+    componentWillUnmount() {
+      console.log("\nServiceScreen unmounting ...");
+    }
   
     static navigationOptions = ({ navigation }) => ({
-        title: 'Services',
-        headerRight: <Button title="Logout" onPress={() => navigation.navigate('Home')} />
+        title: `Services (${navigation.state.params.serviceCategory.name})`,
+        /*headerRight: <Button title="Logout" onPress={() => navigation.navigate('Home')} />*/
     });
 
     render() {
         let titleSection = null;
+
+        //console.log("\nFocused [Service]: " + JSON.stringify(this.props));
+        //console.log("\nNavigation : " + this.props.isFocused);
+        if(!this.props.isFocused) {
+          return null;
+        }
+        // else {
+        //   //StackActions.reset({index: 0, })
+        //   this.props.navigation.dispatch(resetAction);
+        // }
 
         return (
             <View style={styles.rootcontainer}>
@@ -68,7 +87,7 @@ function mapStateToProps(state, ownProps) {
 //   }
 // }
 
-export default connect(mapStateToProps)(ServiceScreen);
+export default connect(mapStateToProps)(withNavigationFocus(ServiceScreen));
 
 const styles = StyleSheet.create({
   container: {
@@ -123,6 +142,7 @@ const styles = StyleSheet.create({
   rootcontainer: {
     flex: 1,
     backgroundColor: '#fff',
+    padding: 10,
     /*borderWidth: 1,
     borderColor: '#ff0000'*/
   }

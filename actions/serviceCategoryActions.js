@@ -18,6 +18,6 @@ export function getServiceCategories() {
         .catch(reason => {
             console.log(reason);
             dispatch(errorAjaxCall(reason));
-        })
+        });
     });
 }

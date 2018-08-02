@@ -60,7 +60,7 @@ export class HomeScreen extends React.Component {
 
       try
       {
-        console.log("Action :: \n");
+        //console.log("Action :: \n");
         //console.log(JSON.stringify(this.props.someactions.authorize));
         //console.log("Home Action Functions: " + JSON.stringify(this.props.actions.authorize));
         this.props.actions.authorize(credentials, profile);

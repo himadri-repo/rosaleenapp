@@ -14,11 +14,12 @@ import ProfileScreen from './app/screens/ProfileScreen'
 import DetailScreen from './app/screens/DetailScreen'
 import LandingScreen from './app/screens/LandingScreen'
 import ServiceCategory from './app/screens/ServiceCategoryScreen'
+import ServicesScreen from './app/screens/ServicesScreen'
 import OfferScreen from './app/screens/OfferScreen'
 import SearchScreen from './app/screens/SearchScreen'
 import SideMenu from './app/SideMenu'
-import { createStackNavigator, createDrawerNavigator, createBottomTabNavigator } from 'react-navigation';
-import { YellowBox, View, Text, StyleSheet, StatusBar, Icon } from 'react-native'
+import { createStackNavigator, createDrawerNavigator, createBottomTabNavigator, NavigationActions, StackActions } from 'react-navigation';
+import { YellowBox, View, Text, StyleSheet, StatusBar, Icon, Alert } from 'react-native'
 import Ionicons from 'react-native-vector-icons/Ionicons';
 //redux
 import {connect} from 'react-redux';
@@ -60,19 +61,58 @@ const LandingScreenStack = createStackNavigator({
   })
 });
 
+// const resetServiceScreenAction = NavigationActions.reset({
+//   index: 0,
+//   actions: [
+//     NavigationActions.navigate({routeName: 'ServiceCatTabLanding'})
+//   ]
+// });
+
+const resetAction = StackActions.reset({
+  index: 0,
+  actions: [
+    NavigationActions.navigate({ routeName: 'ServiceCatTabLanding' }),
+    NavigationActions.navigate({ routeName: 'ServiceTabLanding' }),
+  ],
+});
+
 const ServicesScreenStack = createStackNavigator({
-  TabLanding: {screen: ServiceCategory },
+  ServiceCatTabLanding: {screen: ServiceCategory , navigationOptions: ({navigation})=> ({
+    title: 'Service Categories',
+    headerLeft: <Ionicons style={styles.menuIcon} name="ios-menu-outline" size={35} onPress={ () => navigation.toggleDrawer() } />,
+  })},
+  ServiceTabLanding: {screen: ServicesScreen, },
+  // ServiceTabLanding: {screen: ServicesScreen, navigationOptions: ({navigation})=> ({
+  //   title: 'Services'
+  // })}
 },{
+  initialRouteName: 'ServiceCatTabLanding',
   navigationOptions: ({navigation}) => ({
       headerStyle: {
         backgroundColor: '#2424de'
       },
+      // tabBarOnPress: (tab, jumpToIndex) => {
+      //   console.log("\ntabBarOnPress :: " + JSON.stringify(tab));
+      //   jumpToIndex(tab.index)
+      //   navigation.dispatch(NavigationActions.reset({
+      //     index: 0,
+      //     actions: [
+      //       NavigationActions.navigate({ routeName: 'ServiceCatTabLanding' }) // go to first screen of the StackNavigator
+      //     ]
+      //   }))
+      // },
       /*headerTitle: titleAndIcon,*/
+      
       headerTintColor: 'white',
-      title: 'Services',
-      headerLeft: <Ionicons style={styles.menuIcon} name="ios-menu-outline" size={35} onPress={ () => navigation.toggleDrawer() } />,
+      /*title: 'Services',*/
+      /*headerLeft: <Ionicons style={styles.menuIcon} name="ios-menu-outline" size={35} onPress={ () => navigation.toggleDrawer() } />,*/
       headerRight: <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => navigation.navigate('Home') } />
-  })
+  }),
+  transitionConfig: (sceneProps) => ({
+    transitionSpec: {
+      duration: 100,
+    }
+  }),
 });
 
 const OfferScreenStack = createStackNavigator({
@@ -106,20 +146,32 @@ const SearchScreenStack = createStackNavigator({
 });
 
 const TabVab = createBottomTabNavigator({
-  HomeAfterLogin: { screen: LandingScreenStack, navigationOptions: {
+  HomeAfterLogin: { screen: LandingScreenStack, navigationOptions: ({navigation}) => ({
+    /*tabBarOnPress: (previousScene, scene, jumpToIndex) => {
+      console.log("\ntabBarOnPress: " + scene + "\n");
+    },*/
     title: 'Dashboard'
-  } },
-  Services: { screen: ServicesScreenStack, navigationOptions: {
-    title: 'Services'
-  } },
-  Offers: { screen: OfferScreenStack , navigationOptions: {
+  }) },
+  Services: { screen: ServicesScreenStack, navigationOptions: ({navigation}) => ({
+    title: 'Services',
+  }) },
+  Offers: { screen: OfferScreenStack , navigationOptions: ({navigation}) => ({
+    /*tabBarOnPress: (previousScene, scene, jumpToIndex) => {
+      console.log("\ntabBarOnPress: " + scene + "\n");
+    },*/
     title: 'Offers'
-  } },
-  Search: { screen: SearchScreenStack , navigationOptions: {
+  }) },
+  Search: { screen: SearchScreenStack , navigationOptions: ({navigation}) => ({
+    /*tabBarOnPress: (previousScene, scene, jumpToIndex) => {
+      console.log("\ntabBarOnPress: " + scene + "\n");
+    },*/
     title: 'Search'
-  } },
+  }) },
 }, 
 {
+  headerMode: 'none',
+  headerVisible: false,
+  initialRouteName: 'HomeAfterLogin',
   navigationOptions: ({ navigation }) => ({
     tabBarIcon: ({ focused, tintColor }) => {
       const { routeName } = navigation.state;
@@ -138,8 +190,25 @@ const TabVab = createBottomTabNavigator({
       // icon component from react-native-vector-icons
       return <Ionicons name={iconName} size={25} color={tintColor} />;
     },
+    tabBarOnPress: ({navigation, defaultHandler}) => {
+      if(navigation.state.key.toLowerCase()=="services") {
+        //console.log(JSON.stringify(defaultHandler));
+        if(navigation.state.index==1) {
+          console.log('\npop action should be called');
+          //navigation.setParams({resetNavigation: true});
+          //navigation.state.params.resetNavigation=true; //.dispatch(resetServiceScreenAction);
+          //navigation.goBack();
+          //navigation.dispatch(resetAction);
+        }
+      }
+      if(defaultHandler) {
+        //console.log('\ntabBarOnPress [app.js] clicked before defaultHandler');
+        defaultHandler();
+      }
+    },
   }),
-  lazyLoad: true,
+  lazy: false,
+  /*lazyLoad: false,*/
   tabBarPosition: 'bottom',
   tabBarOptions: {
     activeTintColor: '#bf3509',  //'tomato',
@@ -153,6 +222,7 @@ const TabVab = createBottomTabNavigator({
   },
   swipeEnabled: true,
   animationEnabled: true,
+  backBehavior: "none"
 });
 
 const DashboardNav = createStackNavigator({

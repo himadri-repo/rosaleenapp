@@ -29,9 +29,9 @@ store.dispatch(getServiceCategories());
 //     store.dispatch(getServices());
 // }, 10000);
 
-store.subscribe(()=> {
-    console.log("\nUpdated State: " + JSON.stringify(store.getState()));
-});
+// store.subscribe(()=> {
+//     console.log("\nUpdated State: " + JSON.stringify(store.getState()));
+// });
 
 // setTimeout(() => {
 //     console.log("\n3." + JSON.stringify(store.getState()));

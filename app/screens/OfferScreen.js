@@ -17,6 +17,7 @@ import {
 import {getServiceCategories} from '../../actions/serviceCategoryActions';
 import {ListItem} from 'react-native-elements';
 import { YellowBox } from 'react-native'
+import {withNavigationFocus} from 'react-navigation';
 YellowBox.ignoreWarnings(['Warning: isMounted(...) is deprecated'])
 //redux
 import {connect} from 'react-redux';
@@ -33,11 +34,12 @@ export class OfferScreen extends React.Component {
       this.Mounted = true;
       this.profile = {name: '', picture: ''};
       this.state = {userlist: [{}], postlist: [{}], api: '', servicecategories: ds};
-      console.log("Offers : " + JSON.stringify(this.props));
+      //console.log("Offers : " + JSON.stringify(this.props));
       //this.itemClicked = this.itemClicked.bind(this);
     }
   
     componentWillUnmount() {
+        console.log("\nOffer unmounted ...");
         this.Mounted = false;
     }
 
@@ -93,7 +95,7 @@ export class OfferScreen extends React.Component {
       AsyncStorage.getItem('credentials').then(result => {
         try
         {
-            console.log("credentials: " + JSON.parse(result));
+            //console.log("credentials: " + JSON.parse(result));
             this.credentials = JSON.parse(result);
             //this.callAPI('servicecat');
             this.props.actions.getServiceCategories();
@@ -123,6 +125,11 @@ export class OfferScreen extends React.Component {
 
     render() {
         let titleSection = null;
+
+        //console.log("\nFocused [Offer]: " + this.props.isFocused);
+        if(!this.props.isFocused) {
+          return null;
+        }
 
         return (
             <View style={styles.rootcontainer}>
@@ -156,7 +163,7 @@ function mapStateToProps(state, ownProps) {
     }
 }
   
-export default connect(mapStateToProps, mapDispatchToProps)(OfferScreen);
+export default connect(mapStateToProps, mapDispatchToProps)(withNavigationFocus(OfferScreen));
 
 const styles = StyleSheet.create({
   servicecatcontainer: {
