@@ -64,6 +64,9 @@ export class LandingScreen extends React.Component {
         return (
             <View style={styles.rootcontainer}>
                 <StatusBar
+                translucent={false}
+                animated={false}
+                hidden={false}
                 backgroundColor="blue"
                 barStyle="light-content"/>
                 <View style={styles.container}>

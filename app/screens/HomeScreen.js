@@ -9,11 +9,15 @@ import {
   ImageBackground,
   TouchableOpacity,
   StatusBar,
-  Alert
+  Alert,
+  AsyncStorage
 } from 'react-native';
 import LoginModal from '../modals/LoginModal';
-import {StackActions, NavigationActions} from 'react-navigation';
+import Loader from '../components/Loader';
+//import {StackActions, NavigationActions} from 'react-navigation';
 import { YellowBox } from 'react-native'
+import Auth0 from 'react-native-auth0';
+
 //import configStore from '../../stores/configureStore.dev';
 
 import * as userActions from '../../actions/userActions';
@@ -24,13 +28,18 @@ import {bindActionCreators} from 'redux';
 
 YellowBox.ignoreWarnings(['Warning: isMounted(...) is deprecated']);
 
+var credentials = require('../AuthCredential');
+const auth0 = new Auth0(credentials);
+
 //const store = configStore();
+
+const ACCESS_TOKEN = "accessToken";
 
 export class HomeScreen extends React.Component {
     constructor(props) {
       super(props);
       this.isMounted = false;
-      this.state = { modalVisible: false };
+      this.state = { modalVisible: false, token: '', loading: false };
       this.onAuth = this.onAuth.bind(this)
     }
   
@@ -48,10 +57,70 @@ export class HomeScreen extends React.Component {
 
       //   console.log("STATE in Subscribe: " + JSON.stringify(stateObject));
       // });
+      try
+      {
+        let credential = this.getToken().then(cred => {
+          console.log('Token in DidMount: ' + JSON.stringify(cred));
+          if(cred && cred.accessToken) {
+            console.log('Token in Auto Login: ' + JSON.stringify(cred.accessToken));
+            this.setState({loading: true});
+            this.authenticateUser(cred);
+          }
+        });
+      }
+      catch(error) {
+        console.log(error);
+      }
     };
     
     componentWillUnmount() {
       this.isMounted = false;
+    }
+
+    authenticateUser(credential) {
+      try
+      {
+        console.log('Token in AuthenticateUser: ' + credential.accessToken);
+        auth0.auth
+        .userInfo({ token: credential.accessToken })
+        .then(profile => {
+            //this.props.onAuth(credentials, profile);
+            this.props.actions.authorize(credential, profile);
+            this.setState({loading: false});
+            this.props.navigation.navigate('TabLanding', {credentials: credential, profile: profile});
+          })
+        .catch(error => this.alert('Error', error.json.error_description));
+      }
+      catch(error) {
+        console.log(error);
+      }
+    }
+
+    async storeAccessToken(credential) {
+      try {
+        await AsyncStorage.setItem(ACCESS_TOKEN, JSON.stringify(credential));
+        let token = await this.getToken();
+        console.log("Token logged: " + token.toString());
+      }
+      catch(error) {
+        console.log(error);
+      }
+    }
+
+    async getToken() {
+      try {
+        let credential = await AsyncStorage.getItem(ACCESS_TOKEN).then(cred => JSON.parse(cred));
+
+        if(credential)
+          console.log("Token logged (getToken): " + credential.accessToken);
+
+        return credential;
+      }
+      catch(error) {
+        console.log(error);
+      }
+
+      return null;
     }
 
     onAuth = (credentials, profile) => {
@@ -60,11 +129,15 @@ export class HomeScreen extends React.Component {
 
       try
       {
-        //console.log("Action :: \n");
+        console.log("credentials :: " + JSON.stringify(credentials));
         //console.log(JSON.stringify(this.props.someactions.authorize));
         //console.log("Home Action Functions: " + JSON.stringify(this.props.actions.authorize));
+        AsyncStorage.removeItem(ACCESS_TOKEN).done();
         this.props.actions.authorize(credentials, profile);
-        this.props.navigation.navigate('TabLanding', {credentials: credentials, profile: profile});
+        this.storeAccessToken(credentials).then(value => {
+          console.log('data stored locally : ' + JSON.stringify(credentials));
+          this.props.navigation.navigate('TabLanding', {credentials: credentials, profile: profile});
+        });
       }
       catch(e) {
         console.log(e);
@@ -90,6 +163,7 @@ export class HomeScreen extends React.Component {
           <StatusBar
             backgroundColor="blue"
             barStyle="light-content"/>
+          <Loader loading={this.state.loading} />
           <ImageBackground source={require('../images/bg1.png')} style={styles.container}>
             <View style={styles.headerContainer}>
                 <Image style={styles.logo} source={require('../images/logo.png')}/>

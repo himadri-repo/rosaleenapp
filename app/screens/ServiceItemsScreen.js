@@ -12,7 +12,7 @@ import {
   AsyncStorage,
   TouchableOpacity,
   ScrollView,
-  RefreshControl,
+  RefreshControl
 } from 'react-native';
 import {ListItem} from 'react-native-elements';
 import Icon from 'react-native-vector-icons'
@@ -20,9 +20,9 @@ import {withNavigationFocus, StackActions, NavigationActions} from 'react-naviga
 //redux specific imports
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import {getUsers} from '../../actions/userActions'
+import {getServices} from '../../actions/serviceActions'
 
-export class ServiceScreen extends React.Component {
+export class ServiceItemsScreen extends React.Component {
 
     constructor(props) {
       super(props);
@@ -37,25 +37,35 @@ export class ServiceScreen extends React.Component {
       this.profile = {name: '', picture: ''};
       this.state = {userlist: [{}], postlist: [{}], api: '', refreshing: false};
 
-      this.state.userlist = Object.assign([{}], this.props.users);
-
-      this.state.category = {};
+      this.state.category = '';
+      this.state.categoryItem = {};
+      this.state.technician = Object.assign({}, {technician: this.props.navigation.state.params.technician, 
+        name: this.props.navigation.state.params.name});
+      //this.state.technician = this.props.navigation.state.params.technician;
       if(this.props.navigation.state.params) {
         this.state.category = this.props.navigation.state.params.serviceCategory.name;
+        this.state.categoryItem = Object.assign({}, this.props.navigation.state.params.serviceCategory);
       }
+
+      this.state.services = Object.assign([{}], this.props.services);
+
+      console.log("\n\nServiceItems [props]: " + JSON.stringify(this.props));
+
+    //   this.state.category = {};
+    //   if(this.props.navigation.state.params) {
+    //     this.state.category = this.props.navigation.state.params.serviceCategory.name;
+    //   }
       
-      console.log("Services [users]: " + JSON.stringify(this.state.userlist));
-      console.log("\n\nServices [users]: " + JSON.stringify(this.props));
-  
+      //console.log("Services [users]: " + JSON.stringify(this.state.userlist));
       //this.itemClicked = this.itemClicked.bind(this);
     }
 
     componentWillUnmount() {
-      console.log("\nServiceScreen unmounting ...");
+      console.log("\nServiceItemsScreen unmounting ...");
     }
   
     static navigationOptions = ({ navigation }) => ({
-        title: `Services (${navigation.state.params.serviceCategory.name})`,
+        title: `Select services (${navigation.state.params.serviceCategory.name})`,
         /*headerRight: <Button title="Logout" onPress={() => navigation.navigate('Home')} />*/
     });
 
@@ -64,9 +74,9 @@ export class ServiceScreen extends React.Component {
     }
 
     onRefresh = () => {
-      this.setState({refreshing: true});
-      this.props.actions.getUsers();
-      this.setState({refreshing: false});
+        this.setState({refreshing: true});
+        this.props.actions.getServices();
+        this.setState({refreshing: false});
     }
 
     render() {
@@ -92,22 +102,21 @@ export class ServiceScreen extends React.Component {
         //     </View>
         //   </TouchableOpacity>
         // );
-
+        //{navigation.state.params.serviceCategory.name}
         return (
             <View style={styles.rootcontainer}>
                 <StatusBar
                     backgroundColor="blue"
                     barStyle="light-content"/>
-                <Text style={styles.headerTitle}>Technicians</Text>
+                <Text style={styles.headerTitle}>Services of {this.state.category} Category</Text>
                 <ScrollView showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false}
-                  refreshControl={
-                    <RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} title='Refreshing ...'/>
-                  } style={styles.listcontainer}>
+                    refreshControl={
+                        <RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} title='Refreshing ...'/>
+                    } style={styles.listcontainer}>
                   {
-                    this.state.userlist.filter(user => !user.isowner && user.active).map((usr, idx) => (
-                      <ListItem key={'li' + idx} roundAvatar avatar={{uri: usr.profilepic}} 
-                        title={usr.username} subtitle={usr.speciality}
-                        onPress={() => this.props.navigation.navigate('ServiceItemsTabLanding', {technician: usr.id, name: usr.username, serviceCategory: this.props.navigation.state.params.serviceCategory})}/>
+                    this.state.services.filter(service => service.category_id==this.state.categoryItem.id && service.active).map((srv, idx) => (
+                      <ListItem key={'li' + idx} roundAvatar avatar={{uri: srv.image}}
+                        title={srv.name} subtitle={(srv.description.length>40? srv.description.substring(0,39):srv.description)}/>
                     ))
                   }                  
                 </ScrollView>
@@ -115,14 +124,6 @@ export class ServiceScreen extends React.Component {
         );
     }
 }
-
-/*
-  <FlatList
-  style={styles.listcontainer}
-  data={this.state.userlist.filter(user => !user.isowner && user.active)}
-  renderItem={(item) => <Row {...item}/>}
-  keyExtractor={(item, index) => 'li-' + index}/>
-*/
 
 function mapStateToProps(state, ownProps) {
   return {
@@ -132,11 +133,11 @@ function mapStateToProps(state, ownProps) {
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-      actions: bindActionCreators({getUsers}, dispatch)
+      actions: bindActionCreators({getServices}, dispatch)
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(withNavigationFocus(ServiceScreen));
+export default connect(mapStateToProps, mapDispatchToProps)(withNavigationFocus(ServiceItemsScreen));
 
 const styles = StyleSheet.create({
   container: {
@@ -200,7 +201,7 @@ const styles = StyleSheet.create({
   listcontainer: {
     flex: 1,
     marginTop: 10,
-    padding: 10,
+    padding: 10
   },
   listitem: {
     /*borderWidth: 0,

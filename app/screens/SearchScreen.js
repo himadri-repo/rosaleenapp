@@ -77,7 +77,7 @@ export default class SearchScreen extends React.Component {
 
     componentDidMount = () => {
       AsyncStorage.getItem('credentials').then(result => {
-        console.log("credentials: " + JSON.parse(result));
+        //console.log("credentials: " + JSON.parse(result));
         this.credentials = JSON.parse(result);
         this.callAPI('servicecat');
       }).catch(reason => {

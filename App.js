@@ -15,18 +15,24 @@ import DetailScreen from './app/screens/DetailScreen'
 import LandingScreen from './app/screens/LandingScreen'
 import ServiceCategory from './app/screens/ServiceCategoryScreen'
 import ServicesScreen from './app/screens/ServicesScreen'
+import ServiceItemScreen from './app/screens/ServiceItemsScreen'
 import OfferScreen from './app/screens/OfferScreen'
 import SearchScreen from './app/screens/SearchScreen'
 import SideMenu from './app/SideMenu'
 import { createStackNavigator, createDrawerNavigator, createBottomTabNavigator, NavigationActions, StackActions } from 'react-navigation';
-import { YellowBox, View, Text, StyleSheet, StatusBar, Icon, Alert } from 'react-native'
+import { YellowBox, View, Text, StyleSheet, StatusBar, Icon, Alert, Easing, Animated, AsyncStorage, BackHandler } from 'react-native'
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import Auth0 from 'react-native-auth0';
+
+//import CardStackStyleInterpolator from "react-navigation/src/views/CardStack/CardStackStyleInterpolator";
 //redux
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
-
 YellowBox.ignoreWarnings(['Warning: isMounted(...) is deprecated']);
+
+var credentials = require('./app/AuthCredential');
+const auth0 = new Auth0(credentials);
 
 const StackNav = createStackNavigator({
   Home: { screen: HomeScreen },
@@ -46,6 +52,27 @@ const StackNav = createStackNavigator({
 //     <Text>Weather App</Text>
 //   </View>;
 
+const ACCESS_TOKEN = "accessToken";
+const logout = () => {
+  Alert.alert("Confirm", "Do you want to exit the app?",[
+    {text: "Ok", onPress: () => {
+      console.log("Exiting app");
+      AsyncStorage.removeItem(ACCESS_TOKEN, (error) => {
+        if(!error) {
+          //auth0.auth.logoutUrl({clientId: credentials.clientId, returnTo: ''});
+        }
+        else {
+          console.log(error);
+        }
+      });
+      //this.navigation.navigate('Home');
+      BackHandler.exitApp();
+    }}, {text: "Cancel", onPress: () => {
+      console.log("Not existing app");
+    }, style: 'cancel'}
+  ], {cancelable: true});
+};
+
 const LandingScreenStack = createStackNavigator({
   TabLanding: {screen: LandingScreen },
 },{
@@ -57,7 +84,7 @@ const LandingScreenStack = createStackNavigator({
       headerTintColor: 'white',
       title: 'Dashboard',
       headerLeft: <Ionicons style={styles.menuIcon} name="ios-menu-outline" size={35} onPress={ () => navigation.toggleDrawer() } />,
-      headerRight: <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => navigation.navigate('Home') } />
+      headerRight: <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
   })
 });
 
@@ -77,20 +104,22 @@ const resetAction = StackActions.reset({
 });
 
 const ServicesScreenStack = createStackNavigator({
-  ServiceCatTabLanding: {screen: ServiceCategory , navigationOptions: ({navigation})=> ({
-    title: 'Service Categories',
-    headerLeft: <Ionicons style={styles.menuIcon} name="ios-menu-outline" size={35} onPress={ () => navigation.toggleDrawer() } />,
-  })},
-  ServiceTabLanding: {screen: ServicesScreen, },
-  // ServiceTabLanding: {screen: ServicesScreen, navigationOptions: ({navigation})=> ({
-  //   title: 'Services'
-  // })}
-},{
-  initialRouteName: 'ServiceCatTabLanding',
-  navigationOptions: ({navigation}) => ({
+    ServiceCatTabLanding: {screen: ServiceCategory , navigationOptions: ({navigation})=> ({
+      title: 'Service Categories',
+      headerLeft: <Ionicons style={styles.menuIcon} name="ios-menu-outline" size={35} onPress={ () => navigation.toggleDrawer() } />,
+    })},
+    ServiceTabLanding: {screen: ServicesScreen, },
+    // ServiceTabLanding: {screen: ServicesScreen, navigationOptions: ({navigation})=> ({
+    //   title: 'Services'
+    // })}
+    ServiceItemsTabLanding: {screen: ServiceItemScreen, },
+  },{
+    initialRouteName: 'ServiceCatTabLanding',
+    navigationOptions: ({navigation}) => ({
       headerStyle: {
-        backgroundColor: '#2424de'
+        backgroundColor: '#2424de',
       },
+      gesturesEnabled: true,
       // tabBarOnPress: (tab, jumpToIndex) => {
       //   console.log("\ntabBarOnPress :: " + JSON.stringify(tab));
       //   jumpToIndex(tab.index)
@@ -106,12 +135,30 @@ const ServicesScreenStack = createStackNavigator({
       headerTintColor: 'white',
       /*title: 'Services',*/
       /*headerLeft: <Ionicons style={styles.menuIcon} name="ios-menu-outline" size={35} onPress={ () => navigation.toggleDrawer() } />,*/
-      headerRight: <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => navigation.navigate('Home') } />
+      headerRight: <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
   }),
   transitionConfig: (sceneProps) => ({
     transitionSpec: {
-      duration: 100,
-    }
+      duration: 300,
+      easing: Easing.out(Easing.poly(4)),
+      timing: Animated.timing,
+    },
+    screenInterpolator: sceneProps => {
+      const {layout, position, scene} = sceneProps;
+      const {index} = scene;
+
+      const width = layout.initWidth;
+      const translateX = position.interpolate({
+          inputRange: [index - 1, index, index + 1],
+          outputRange: [width, 0, 0],
+      });
+      const opacity = position.interpolate({
+          inputRange: [index - 1, index - 0.99, index],
+          outputRange: [0, 1, 1],
+      });
+
+      return {opacity, transform: [{translateX: translateX}]};
+    },
   }),
 });
 
@@ -126,7 +173,7 @@ const OfferScreenStack = createStackNavigator({
       headerTintColor: 'white',
       title: 'Offers',
       headerLeft: <Ionicons style={styles.menuIcon} name="ios-menu-outline" size={35} onPress={ () => navigation.toggleDrawer() } />,
-      headerRight: <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => navigation.navigate('Home') } />
+      headerRight: <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
   })
 });
 
@@ -141,7 +188,7 @@ const SearchScreenStack = createStackNavigator({
       headerTintColor: 'white',
       title: 'Search',
       headerLeft: <Ionicons style={styles.menuIcon} name="ios-menu-outline" size={35} onPress={ () => navigation.toggleDrawer() } />,
-      headerRight: <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => navigation.navigate('Home') } />
+      headerRight: <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
   })
 });
 
@@ -238,7 +285,7 @@ const DashboardNav = createStackNavigator({
       headerTintColor: 'white',
       title: 'Your Location',
       headerLeft: <Ionicons style={styles.menuIcon} name="ios-menu-outline" size={35} onPress={ () => navigation.toggleDrawer() } />,
-      headerRight: <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => navigation.navigate('Home') } />      
+      headerRight: <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
   })
 });
 
@@ -270,6 +317,14 @@ const DrawerNavigation = createDrawerNavigator({
 export class App extends Component {
   constructor(props) {
     super(props);
+  }
+
+  componentDidMount() {
+    BackHandler.addEventListener('hardwareBackPress', BackHandler.exitApp);
+  }
+
+  componentWillUnmount() {
+    BackHandler.removeEventListener('hardwareBackPress', BackHandler.exitApp)
   }
 
   render() {

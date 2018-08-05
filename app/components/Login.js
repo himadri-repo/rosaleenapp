@@ -16,6 +16,7 @@ import {StackActions, NavigationActions} from 'react-navigation';
 import Auth0 from 'react-native-auth0';
 import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
+import Loader from './Loader';
 //redux
 import {connect} from 'react-redux';
 //import {bindActionCreators} from 'redux';
@@ -27,7 +28,7 @@ const auth0 = new Auth0(credentials);
 export class Login extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { viewLogin: true };
+        this.state = { viewLogin: true, loading: false };
         this.realmLogin = this.realmLogin.bind(this);
         this.createUser = this.createUser.bind(this);
 
@@ -38,6 +39,7 @@ export class Login extends React.Component {
         auth0.auth
             .userInfo({ token: credentials.accessToken })
             .then(profile => {
+                this.setState({loading: false});
                 this.props.onAuth(credentials, profile);
             })
             .catch(error => this.alert('Error', error.json.error_description));
@@ -54,6 +56,7 @@ export class Login extends React.Component {
 
     realmLogin(username, password) {
         //this.alert("Information","Logging in ...");
+        this.setState({loading: true});
         auth0.auth
             .passwordRealm({
                 username: username,
@@ -133,6 +136,7 @@ export class Login extends React.Component {
                 <StatusBar
                     backgroundColor="blue"
                     barStyle="light-content"/>
+                <Loader loading={this.state.loading} />
                 <View style={styles.headerContainer}>
                     <Image
                         style={styles.logo}

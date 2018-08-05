@@ -12,7 +12,8 @@ import {
   AsyncStorage,
   TouchableOpacity,
   ScrollView,
-  ListView
+  ListView,
+  RefreshControl,
 } from 'react-native';
 import {ListItem} from 'react-native-elements';
 import {withNavigationFocus, StackActions} from 'react-navigation';
@@ -30,8 +31,8 @@ export class ServiceCategoryScreen extends React.Component {
     constructor(props) {
       super(props);
       this.profile = {name: '', picture: ''};
-      this.state = {userlist: [{}], postlist: [{}], api: '', servicecategories: ds};
-      //console.log("Services : " + JSON.stringify(this.props));
+      this.state = {userlist: [{}], postlist: [{}], api: '', servicecategories: ds, refreshing: false};
+      console.log("Services : " + JSON.stringify(this.props));
       //this.itemClicked = this.itemClicked.bind(this);
     }
     
@@ -122,18 +123,30 @@ export class ServiceCategoryScreen extends React.Component {
       });
     };
     
+    onRefresh = () => {
+      this.setState({refreshing: true});
+      this.props.actions.getServiceCategories();
+      this.setState({refreshing: false});
+      // .then(() => {
+      //   this.setState({refreshing: false});
+      // });
+    }
+
     pressItem(serviceCategoryItem) { 
       this.props.navigation.navigate('ServiceTabLanding', {serviceCategory: serviceCategoryItem});
     }
+    
+    // <View style={styles.gridItemImage}>
+    //  <Text style={{fontSize:18, color:'blue'}}>
+    //  {item.name}
+    //  </Text>
+    // </View>
+
 
     renderGridItem(item, index) {
       return (
         <TouchableOpacity style={styles.gridItem} onPress={()=> this.pressItem(item)}>
-          <View style={styles.gridItemImage}>
-              <Text style={{fontSize:25, color:'blue'}}>
-                  {item.name}
-              </Text>
-          </View>
+          <Image style={styles.gridItemImage} source={{uri: item.iconurl}} />
           <Text style={styles.gridItemText}>{item.name}</Text>
         </TouchableOpacity>
       );
@@ -151,7 +164,10 @@ export class ServiceCategoryScreen extends React.Component {
                 <StatusBar
                     backgroundColor="blue"
                     barStyle="light-content"/>
-                <ScrollView style={{backgroundColor: '#ffffff', flex: 1}} >
+                <ScrollView style={{backgroundColor: '#ffffff', flex: 1}} showsHorizontalScrollIndicator={false} 
+                    showsVerticalScrollIndicator={false} refreshControl={
+                      <RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} title='Refreshing...'/>
+                    }>
                     <ListView 
                         contentContainerStyle={styles.grid}
                         //dataSource={this.state.servicecategories}
@@ -207,7 +223,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     textAlignVertical: 'center',
     fontWeight: '700',
-    fontSize: 28
+    fontSize: 28,
+    padding: 0,
   },
   background: {
     flex: 1,
@@ -268,14 +285,14 @@ const styles = StyleSheet.create({
   },
   gridItem: {
       margin:5,
-      width: 100, //150,
-      height: 100, //150,
+      width: 125, //150,
+      height: 125, //150,
       justifyContent: 'center',
       alignItems: 'center',
   },
   gridItemImage: {
-      width: 70, //100,
-      height: 70, //100,
+      width: 95, //100,
+      height: 95, //100,
       borderWidth: 1.5, 
       borderColor: 'blue',
       borderRadius: 50,
