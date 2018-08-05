@@ -60,9 +60,9 @@ export class HomeScreen extends React.Component {
       try
       {
         let credential = this.getToken().then(cred => {
-          console.log('Token in DidMount: ' + JSON.stringify(cred));
+          //console.log('Token in DidMount: ' + JSON.stringify(cred));
           if(cred && cred.accessToken) {
-            console.log('Token in Auto Login: ' + JSON.stringify(cred.accessToken));
+            //console.log('Token in Auto Login: ' + JSON.stringify(cred.accessToken));
             this.setState({loading: true});
             this.authenticateUser(cred);
           }
@@ -80,7 +80,7 @@ export class HomeScreen extends React.Component {
     authenticateUser(credential) {
       try
       {
-        console.log('Token in AuthenticateUser: ' + credential.accessToken);
+        //console.log('Token in AuthenticateUser: ' + credential.accessToken);
         auth0.auth
         .userInfo({ token: credential.accessToken })
         .then(profile => {
@@ -100,7 +100,7 @@ export class HomeScreen extends React.Component {
       try {
         await AsyncStorage.setItem(ACCESS_TOKEN, JSON.stringify(credential));
         let token = await this.getToken();
-        console.log("Token logged: " + token.toString());
+        //console.log("Token logged: " + token.toString());
       }
       catch(error) {
         console.log(error);
@@ -111,8 +111,8 @@ export class HomeScreen extends React.Component {
       try {
         let credential = await AsyncStorage.getItem(ACCESS_TOKEN).then(cred => JSON.parse(cred));
 
-        if(credential)
-          console.log("Token logged (getToken): " + credential.accessToken);
+        // if(credential)
+        //   console.log("Token logged (getToken): " + credential.accessToken);
 
         return credential;
       }
@@ -129,13 +129,13 @@ export class HomeScreen extends React.Component {
 
       try
       {
-        console.log("credentials :: " + JSON.stringify(credentials));
+        //console.log("credentials :: " + JSON.stringify(credentials));
         //console.log(JSON.stringify(this.props.someactions.authorize));
         //console.log("Home Action Functions: " + JSON.stringify(this.props.actions.authorize));
         AsyncStorage.removeItem(ACCESS_TOKEN).done();
         this.props.actions.authorize(credentials, profile);
         this.storeAccessToken(credentials).then(value => {
-          console.log('data stored locally : ' + JSON.stringify(credentials));
+          //console.log('data stored locally : ' + JSON.stringify(credentials));
           this.props.navigation.navigate('TabLanding', {credentials: credentials, profile: profile});
         });
       }

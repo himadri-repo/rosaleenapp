@@ -32,7 +32,7 @@ export class ServiceCategoryScreen extends React.Component {
       super(props);
       this.profile = {name: '', picture: ''};
       this.state = {userlist: [{}], postlist: [{}], api: '', servicecategories: ds, refreshing: false};
-      console.log("Services : " + JSON.stringify(this.props));
+      //console.log("Services : " + JSON.stringify(this.props));
       //this.itemClicked = this.itemClicked.bind(this);
     }
     

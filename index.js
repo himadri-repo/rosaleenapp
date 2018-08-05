@@ -15,7 +15,7 @@ import {getUsers} from './actions/userActions';
 import initialState from './stores/initialState';
 
 const store = configStore(initialState);
-console.log("\n0." + JSON.stringify(store.getState()));
+//console.log("\n0." + JSON.stringify(store.getState()));
 store.dispatch(getUsers());
 store.dispatch(getServices());
 store.dispatch(getServiceCategories());

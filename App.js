@@ -16,6 +16,7 @@ import LandingScreen from './app/screens/LandingScreen'
 import ServiceCategory from './app/screens/ServiceCategoryScreen'
 import ServicesScreen from './app/screens/ServicesScreen'
 import ServiceItemScreen from './app/screens/ServiceItemsScreen'
+import SalesReviewScreen from './app/screens/SalesReviewScreen'
 import OfferScreen from './app/screens/OfferScreen'
 import SearchScreen from './app/screens/SearchScreen'
 import SideMenu from './app/SideMenu'
@@ -113,6 +114,7 @@ const ServicesScreenStack = createStackNavigator({
     //   title: 'Services'
     // })}
     ServiceItemsTabLanding: {screen: ServiceItemScreen, },
+    ServiceSalesReviewTabLanding: {screen: SalesReviewScreen},
   },{
     initialRouteName: 'ServiceCatTabLanding',
     navigationOptions: ({navigation}) => ({

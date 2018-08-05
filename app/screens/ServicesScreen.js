@@ -44,8 +44,8 @@ export class ServiceScreen extends React.Component {
         this.state.category = this.props.navigation.state.params.serviceCategory.name;
       }
       
-      console.log("Services [users]: " + JSON.stringify(this.state.userlist));
-      console.log("\n\nServices [users]: " + JSON.stringify(this.props));
+      //console.log("Services [users]: " + JSON.stringify(this.state.userlist));
+      //console.log("\n\nServices [users]: " + JSON.stringify(this.props));
   
       //this.itemClicked = this.itemClicked.bind(this);
     }

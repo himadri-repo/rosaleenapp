@@ -12,15 +12,19 @@ import {
   AsyncStorage,
   TouchableOpacity,
   ScrollView,
-  RefreshControl
+  RefreshControl,
+  Platform
 } from 'react-native';
 import {ListItem} from 'react-native-elements';
-import Icon from 'react-native-vector-icons'
+//import Icon from 'react-native-vector-icons'
+import Icon from 'react-native-vector-icons/Ionicons';
 import {withNavigationFocus, StackActions, NavigationActions} from 'react-navigation';
 //redux specific imports
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {getServices} from '../../actions/serviceActions'
+
+const CURRENT_CART_INFORMATION = 'current_cart_information';
 
 export class ServiceItemsScreen extends React.Component {
 
@@ -35,7 +39,7 @@ export class ServiceItemsScreen extends React.Component {
       /*this.credentials = this.props.navigation.state.params.credentials;
       this.profile = this.props.navigation.state.params.profile;*/
       this.profile = {name: '', picture: ''};
-      this.state = {userlist: [{}], postlist: [{}], api: '', refreshing: false};
+      this.state = {userlist: [{}], postlist: [{}], api: '', refreshing: false, cart: {selectedServices:[], customer: {}}};
 
       this.state.category = '';
       this.state.categoryItem = {};
@@ -49,7 +53,7 @@ export class ServiceItemsScreen extends React.Component {
 
       this.state.services = Object.assign([{}], this.props.services);
 
-      console.log("\n\nServiceItems [props]: " + JSON.stringify(this.props));
+      //console.log("\n\nServiceItems [props]: " + JSON.stringify(this.props));
 
     //   this.state.category = {};
     //   if(this.props.navigation.state.params) {
@@ -69,14 +73,52 @@ export class ServiceItemsScreen extends React.Component {
         /*headerRight: <Button title="Logout" onPress={() => navigation.navigate('Home')} />*/
     });
 
-    pressItem(user) { 
-      console.log(`\nuser clicked : ${user.username}`);
+    pressItem(service) { 
+      let selectedServices = this.state.cart.selectedServices;
+
+      let index = selectedServices.findIndex(srv=> srv.id===service.id);
+      //let index = selectedServices.indexOf(service);
+      //console.log('Index : ' + index);
+      if(index<0) {
+        selectedServices.push(service);
+      }  
+      else
+      {
+        selectedServices.splice(index, 1);
+      }
+
+      this.setState({selectedServices: selectedServices});
+
+      //console.log('Cart -> ' + JSON.stringify(this.state.cart));
+      // services = services.map((srv, idx) => {
+      //   if(srv.id===service.id)
+      //   {
+      //     if(srv.operation_time==30) {
+      //       srv.operation_time = 40;
+      //     }
+      //     else if(srv.operation_time==40) {
+      //       srv.operation_time = 30;
+      //     }
+      //     console.log(srv.operation_time);
+      //   }
+
+      //   return srv;
+      // });
+      // //console.log(`\nuser clicked : ${JSON.stringify(services)}`);
+      // this.setState({services: services});
     }
 
     onRefresh = () => {
         this.setState({refreshing: true});
         this.props.actions.getServices();
         this.setState({refreshing: false});
+    }
+
+    async OnSalesReview() {
+      //Alert.alert('Confirm', 'Do you want to proceed with billing?');
+      await AsyncStorage.setItem(CURRENT_CART_INFORMATION, JSON.stringify(this.state.cart));
+      console.log(`Cart is stored into storage -> Services count: ${this.state.cart.selectedServices.length}`);
+      this.props.navigation.navigate('ServiceSalesReviewTabLanding', {cart: this.state.cart});
     }
 
     render() {
@@ -91,18 +133,30 @@ export class ServiceItemsScreen extends React.Component {
         //   //StackActions.reset({index: 0, })
         //   this.props.navigation.dispatch(resetAction);
         // }
-        // const Row = (props) => (
-        //   <TouchableOpacity style={styles.gridItem} onPress={()=> this.pressItem(props.item)}>
-        //     <View style={styles.listitemcontainer}>
-        //       {console.log(JSON.stringify(props))}
-        //       <Image source={require('../images/jaya1.jpg')} style={styles.listitemphoto} />
-        //       <Text style={styles.listitemtext}>
-        //         {`${props.item.username}`}
-        //       </Text>
-        //     </View>
-        //   </TouchableOpacity>
-        // );
+        const SelectionIcon = (props) => {
+          let selectedServices = this.state.cart.selectedServices;
+          let selectedService = selectedServices.find(srv => srv.id===props.id);
+
+          let platform = Platform.OS === 'ios' ? 'ios' : 'md';
+          let iconName = selectedService? `${platform}-checkbox` : `${platform}-square-outline`;
+          let iconColor = selectedService? 'green' : 'black';
+          return <Icon style={styles.selectIcon} name={iconName} color={iconColor} size={20}/>;
+        };
+
+        const Row = (props) => (
+          <TouchableOpacity style={styles.gridItem} onPress={()=> this.pressItem(props)} key={'id-' + props.id}>
+            <View style={styles.listitemcontainer}>
+              {
+                //console.log('Row -> ' + JSON.stringify(props))
+              }
+              <SelectionIcon {...props} />
+              <Image source={{uri: props.image}} style={styles.listitemphoto} />
+              <Text style={styles.listitemtext}>{props.name}</Text>
+            </View>
+          </TouchableOpacity>
+        );
         //{navigation.state.params.serviceCategory.name}
+        //${props.item.username}
         return (
             <View style={styles.rootcontainer}>
                 <StatusBar
@@ -115,16 +169,25 @@ export class ServiceItemsScreen extends React.Component {
                     } style={styles.listcontainer}>
                   {
                     this.state.services.filter(service => service.category_id==this.state.categoryItem.id && service.active).map((srv, idx) => (
-                      <ListItem key={'li' + idx} roundAvatar avatar={{uri: srv.image}}
-                        title={srv.name} subtitle={(srv.description.length>40? srv.description.substring(0,39):srv.description)}/>
+                      // <ListItem key={'li' + idx} roundAvatar avatar={{uri: srv.image}}
+                      //   title={srv.name} subtitle={(srv.description.length>40? srv.description.substring(0,39):srv.description)}/>
+                      <Row {...srv} key={'id-'+idx} />
                     ))
-                  }                  
+                  }
                 </ScrollView>
+                <TouchableOpacity disabled={this.state.cart.selectedServices.length<=0} 
+                    style={styles.Button} 
+                    onPress={()=> this.OnSalesReview()}>
+                      <Text style={this.state.cart.selectedServices.length<=0? styles.disabled 
+                        : styles.proceedButtonText}>
+                        Proceed to Billing ({this.state.cart.selectedServices.length} services) >>
+                      </Text>
+                </TouchableOpacity>
             </View>
         );
     }
 }
-
+//styles.Button
 function mapStateToProps(state, ownProps) {
   return {
       ...state
@@ -201,7 +264,39 @@ const styles = StyleSheet.create({
   listcontainer: {
     flex: 1,
     marginTop: 10,
-    padding: 10
+    /*padding: 10*/
+    width: '100%',
+  },
+  proceedButton: {
+    flex: 1,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 40,
+    width: "100%",
+    backgroundColor: '#1c1ccd',
+    color: '#ffffff',
+    alignContent: 'center',
+  },
+  proceedButtonText: {
+    backgroundColor: '#1c1ccd',
+    color: '#ffffff',
+    height: 50,
+    width: '100%',
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    fontSize: 18,
+    fontWeight: '300',
+    // justifyContent: 'center',
+    // alignItems: 'center',
+    // alignContent: 'center',
+  },
+  disabled: {
+    display: 'none',
+    // color: '#cdcdcd',
+    // fontSize: 14,
+    // fontWeight: '100',
   },
   listitem: {
     /*borderWidth: 0,
@@ -211,7 +306,7 @@ const styles = StyleSheet.create({
   /* list item style */
   listitemcontainer: {
     flex: 1,
-    padding: 12,
+    padding: 5,
     flexDirection: 'row',
     justifyContent: 'flex-start',
     alignItems: 'center',
@@ -229,12 +324,22 @@ const styles = StyleSheet.create({
   gridItem: {
     margin:5,
     //width: 100, //150,
-    height: 100, //150,
+    height: 50, //150,
     /*justifyContent: 'center',
     alignItems: 'center',*/
     borderBottomWidth: 1,
     borderBottomColor: '#0e03ea'
-  },  
+  },
+  selectIcon: {
+    height: 40,
+    width: 40,
+    marginRight: 10,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    /*borderWidth: 1,
+    borderColor: '#000000',*/
+    fontSize: 30,
+  },
 });
 
 //jshint ignore:end
