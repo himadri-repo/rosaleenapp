@@ -89,9 +89,13 @@ export class HomeScreen extends React.Component {
             this.setState({loading: false});
             this.props.navigation.navigate('TabLanding', {credentials: credential, profile: profile});
           })
-        .catch(error => this.alert('Error', error.json.error_description));
+        .catch(error => {
+          this.setState({loading: false});
+          Alert.alert('Error', JSON.stringify(error));
+        });
       }
       catch(error) {
+        this.setState({loading: false});
         console.log(error);
       }
     }
