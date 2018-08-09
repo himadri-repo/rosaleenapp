@@ -5,12 +5,14 @@ import serviceCategories from './serviceCategryReducer';
 import users from './userReducer';
 import ajaxCallInProgress from './ajaxStatusReducer';
 import {authorize, currentUser} from './currentUserReducer';
+import general from './generalReducer';
 
 const rootReducer = combineReducers({
     services, serviceCategories, users,
     ajaxCallInProgress,
     credentials: authorize,
     currentUser: currentUser,
+    navigator: general
 });
 
 export default rootReducer;

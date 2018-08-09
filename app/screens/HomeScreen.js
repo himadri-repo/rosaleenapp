@@ -10,7 +10,8 @@ import {
   TouchableOpacity,
   StatusBar,
   Alert,
-  AsyncStorage
+  AsyncStorage,
+  BackHandler
 } from 'react-native';
 import LoginModal from '../modals/LoginModal';
 import Loader from '../components/Loader';
@@ -21,6 +22,7 @@ import Auth0 from 'react-native-auth0';
 //import configStore from '../../stores/configureStore.dev';
 
 import * as userActions from '../../actions/userActions';
+//import * as generalActions from '../../actions/generalActions';
 
 //redux
 import {connect} from 'react-redux';
@@ -161,7 +163,9 @@ export class HomeScreen extends React.Component {
     };
 
     render() {
-      const { navigate } = this.props.navigation;
+      //const { navigate } = this.props.navigation;
+      //generalActions.setNavigatorSuccess(navigate);
+
       return (
         <View style={styles.headContainer}>
           <StatusBar

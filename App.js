@@ -24,6 +24,7 @@ import { createStackNavigator, createDrawerNavigator, createBottomTabNavigator, 
 import { YellowBox, View, Text, StyleSheet, StatusBar, Icon, Alert, Easing, Animated, AsyncStorage, BackHandler } from 'react-native'
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Auth0 from 'react-native-auth0';
+import RNExitApp from 'react-native-exit-app';
 
 //import CardStackStyleInterpolator from "react-navigation/src/views/CardStack/CardStackStyleInterpolator";
 //redux
@@ -319,17 +320,50 @@ const DrawerNavigation = createDrawerNavigator({
 export class App extends Component {
   constructor(props) {
     super(props);
+
   }
 
+  // reset = () => {
+  //   //console.log(JSON.stringify(this.state.nav));
+  //   return this.props.navigator
+  //         .dispatch(NavigationActions.reset(
+  //         {
+  //             index: 0,
+  //             key: null,
+  //             actions: [
+  //               NavigationActions.navigate({ routeName: 'Home'})
+  //             ]
+  //         }));
+  // }  
+
+  exitApp = () => {
+    //console.log(JSON.stringify(val));
+    Alert.alert('Confirm', 'Do you want to exit (Yes/No)?', [
+      {text: 'Yes', onPress: () => {
+        //console.log('NAV-> ' + JSON.stringify(this.props.navigator));
+        //this.reset();
+        RNExitApp.exitApp();
+        //BackHandler.exitApp();
+      }},
+      {text: 'No', onPress: () => console.log('No need to exit the app'), style: 'cancel'}
+    ], {cancelable: true});
+    return true;
+  }  
+
   componentDidMount() {
-    BackHandler.addEventListener('hardwareBackPress', BackHandler.exitApp);
+    //console.log('Props: ' + JSON.stringify(this.props.navigation));
+    BackHandler.addEventListener('hardwareBackPress', this.exitApp);
   }
 
   componentWillUnmount() {
-    BackHandler.removeEventListener('hardwareBackPress', BackHandler.exitApp)
+    BackHandler.removeEventListener('hardwareBackPress', this.exitApp);
   }
 
   render() {
+    //const {navigate} = this.props.navigation;
+
+    //this.setState({navigation: navigate});
+
     return (
         <DrawerNavigation>
           <StatusBar
@@ -342,6 +376,8 @@ export class App extends Component {
 
 function mapStateToProps(state, properties)
 {
+//  console.log("mapState2Props : " + JSON.stringify(state));
+
   return {
     ...state
   };

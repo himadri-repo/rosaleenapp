@@ -1,5 +1,6 @@
 //jshint esversion: 6
 export default {
+    navigator:{},
     currentUser:{},
     users: [],
     services: [],

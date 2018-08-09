@@ -31,7 +31,7 @@ export class SalesReviewScreen extends Component
            expand: false,
            expandVideo: false,
            buttonText: 'Customer Info',
-           buttonTextVideo: 'Click Here To Expand',
+           buttonTextVideo: 'Selected service(s)',
            cart: {},
            errorMessage: ''
         };
@@ -55,12 +55,11 @@ export class SalesReviewScreen extends Component
     expand_collapse_Function =(item)=>
     {
         LayoutAnimation.configureNext( LayoutAnimation.Presets.easeInEaseOut );
- 
         if(item==1) {
             if( this.state.expand == false )
             {
                 this.setState({ 
-                  updatedHeight: this.state.textLayoutHeight, 
+                  updatedHeight: 300, //this.state.textLayoutHeight, 
                   expand: true, 
                   buttonText: 'Customer Info' 
                 }); 
@@ -77,18 +76,20 @@ export class SalesReviewScreen extends Component
         else if(item==2) {
             if( this.state.expandVideo == false )
             {
+                console.log('item TRUE -> ' + item);
                 this.setState({ 
-                  updatedVideoHeight: this.state.textLayoutHeight, 
+                  updatedVideoHeight: 300, /*this.state.textLayoutHeight,*/ 
                   expandVideo: true, 
-                  buttonTextVideo: 'Click Here To Collapse'
+                  buttonTextVideo: 'Selected service(s)'
                 }); 
             }
             else
             {
+                console.log('item FALSE -> ' + item);
                 this.setState({ 
                   updatedVideoHeight: 0, 
                   expandVideo: false, 
-                  buttonTextVideo: 'Click Here To Expand'
+                  buttonTextVideo: 'Selected service(s)'
                 });
             }        
         }
@@ -106,6 +107,7 @@ export class SalesReviewScreen extends Component
         let platform = Platform.OS === 'ios' ? 'ios' : 'md';
         let iconName = `${platform}-checkmark`;
         let headIconName = this.state.expand?'angle-double-up':'angle-double-down';
+        let headVideoIconName = this.state.expandVideo?'angle-double-up':'angle-double-down';
         const CustomerInfo = (props) => (
             <View style={styles.ExpandSubViewInsideView}>
                 <ScrollView>
@@ -121,6 +123,13 @@ export class SalesReviewScreen extends Component
                 </TouchableOpacity>
             </View>
         );
+
+        const ServiceList = () => {
+            console.log(JSON.stringify(this.props.navigation.state.params.cart.selectedServices));
+            return this.props.navigation.state.params.cart.selectedServices.map(srv=> {
+                return (<Text key={'txt-' + srv.id}>{srv.name}</Text>);
+            });
+        }
         //, height:30, width: 30
         //styles.TouchableOpacityStyle && 
         // <CustomerInfo onLayout = {( value ) => this.getHeight( value.nativeEvent.layout.height )}/>
@@ -136,8 +145,8 @@ export class SalesReviewScreen extends Component
                 <View style={ styles.MainContainer }>
                     <View style = { styles.ChildView }>
                         <TouchableOpacity activeOpacity = { 0.7 } 
-                                        onPress = {()=> this.expand_collapse_Function(1) } 
-                                        style = { styles.TouchableOpacityStyle }>
+                                onPress = {()=> this.expand_collapse_Function(1) } 
+                                style = { styles.TouchableOpacityStyle }>
                             <FAIcon name='female' size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
                             <Text style = { styles.TouchableOpacityTitleText}>{this.state.buttonText}</Text>
                             <FAIcon name={headIconName} size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
@@ -148,16 +157,16 @@ export class SalesReviewScreen extends Component
                     </View>
                     <View style = { styles.ChildView }>
                         <TouchableOpacity activeOpacity = { 0.7 } 
-                            onPress = {()=> this.expand_collapse_Function(2) } 
-                            style = { styles.TouchableOpacityStyle }>
-                            <Text style = { styles.TouchableOpacityTitleText }>{this.state.buttonTextVideo}</Text>
+                                onPress = {()=> this.expand_collapse_Function(2) } 
+                                style = { styles.TouchableOpacityStyle }>
+                            <FAIcon name='female' size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
+                            <Text style = { styles.TouchableOpacityTitleText}>{this.state.buttonTextVideo}</Text>
+                            <FAIcon name={headVideoIconName} size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
                         </TouchableOpacity>
                         <View style = {{ height: this.state.updatedVideoHeight, overflow: 'hidden' }}>
-                            <Text style = { styles.ExpandViewInsideText } 
-                                onLayout = {( value ) => this.getHeight( value.nativeEvent.layout.height )}>
-                                This is another collapsible section, where we can put apply cupon etc into it. We can also show user the 
-                                billing information and total amount to be paid. We can capture mode of payment also here.
-                            </Text>
+                            <View style={styles.ExpandSubViewInsideView}>
+                                <ServiceList />
+                            </View>
                         </View>
                     </View>
                 </View>
@@ -165,6 +174,12 @@ export class SalesReviewScreen extends Component
         );
     }
 }
+
+// <Text style = { styles.ExpandViewInsideText } 
+// onLayout = {( value ) => this.getHeight( value.nativeEvent.layout.height )}>
+// This is another collapsible section, where we can put apply cupon etc into it. We can also show user the 
+// billing information and total amount to be paid. We can capture mode of payment also here.
+// </Text>
 
 // <Text style = { styles.ExpandViewInsideText } 
 // onLayout = {( value ) => this.getHeight( value.nativeEvent.layout.height )}>
@@ -207,9 +222,11 @@ const styles = StyleSheet.create(
     MainContainer:
     {
         flex: 1,
+        flexDirection: 'column',
         justifyContent: 'flex-start',
         alignItems: 'center',
-        paddingTop: (Platform.OS === 'ios') ? 20 : 0
+        paddingTop: (Platform.OS === 'ios') ? 20 : 0,
+        borderWidth: 1,
     },
 
     ChildView:
@@ -235,7 +252,7 @@ const styles = StyleSheet.create(
         textAlignVertical: 'center',
         color: '#fff',
         fontSize: 20,
-        width: '85%'
+        width: '88%'
     },
     TouchableOpacityButtonTitleText:
     {
@@ -274,7 +291,8 @@ const styles = StyleSheet.create(
     ExpandSubViewInsideView:
     {
         flex:1,
-        padding: 12
+        padding: 12,
+        /*borderWidth: 1,*/
     },
     ButtonContent: {
         flex: 1,

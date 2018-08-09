@@ -3,6 +3,7 @@
 export const INITIATE_AJAX_CALL = 'INITIATE_AJAX_CALL';
 //export const AJAX_CALL_SUCCESS = 'AJAX_CALL_SUCCESS';
 export const AJAX_CALL_ERROR = 'AJAX_CALL_ERROR';
+export const SAVE_NAVIGATOR = 'SAVE_NAVIGATOR';
 
 //user specific action types
 export const LOAD_USERS_SUCCESS = 'LOAD_USERS_SUCCESS';
