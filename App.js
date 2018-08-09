@@ -7,7 +7,8 @@
 //jshint esversion: 6
 import React, { Component } from 'react';
 import {
-  AppRegistry
+  AppRegistry,
+  Platform
 } from 'react-native';
 import HomeScreen from './app/screens/HomeScreen'
 import ProfileScreen from './app/screens/ProfileScreen'
@@ -19,6 +20,7 @@ import ServiceItemScreen from './app/screens/ServiceItemsScreen'
 import SalesReviewScreen from './app/screens/SalesReviewScreen'
 import OfferScreen from './app/screens/OfferScreen'
 import SearchScreen from './app/screens/SearchScreen'
+import CartControl from './app/components/CartControl';
 import SideMenu from './app/SideMenu'
 import { createStackNavigator, createDrawerNavigator, createBottomTabNavigator, NavigationActions, StackActions } from 'react-navigation';
 import { YellowBox, View, Text, StyleSheet, StatusBar, Icon, Alert, Easing, Animated, AsyncStorage, BackHandler } from 'react-native'
@@ -86,9 +88,13 @@ const LandingScreenStack = createStackNavigator({
       headerTintColor: 'white',
       title: 'Dashboard',
       headerLeft: <Ionicons style={styles.menuIcon} name="ios-menu-outline" size={35} onPress={ () => navigation.toggleDrawer() } />,
-      headerRight: <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
+      headerRight: <View style={styles.headerIconContainer}>
+        <CartControl />
+        <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
+        </View>
   })
 });
+//<Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
 
 // const resetServiceScreenAction = NavigationActions.reset({
 //   index: 0,
@@ -138,7 +144,11 @@ const ServicesScreenStack = createStackNavigator({
       headerTintColor: 'white',
       /*title: 'Services',*/
       /*headerLeft: <Ionicons style={styles.menuIcon} name="ios-menu-outline" size={35} onPress={ () => navigation.toggleDrawer() } />,*/
-      headerRight: <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
+      // headerRight: <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
+      headerRight: <View style={styles.headerIconContainer}>
+        <CartControl />
+        <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
+        </View>
   }),
   transitionConfig: (sceneProps) => ({
     transitionSpec: {
@@ -176,9 +186,14 @@ const OfferScreenStack = createStackNavigator({
       headerTintColor: 'white',
       title: 'Offers',
       headerLeft: <Ionicons style={styles.menuIcon} name="ios-menu-outline" size={35} onPress={ () => navigation.toggleDrawer() } />,
-      headerRight: <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
+      headerRight: <View style={styles.headerIconContainer}>
+        <CartControl />
+        <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
+        </View>
   })
 });
+//<Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
+
 
 const SearchScreenStack = createStackNavigator({
   TabLanding: {screen: SearchScreen },
@@ -191,9 +206,13 @@ const SearchScreenStack = createStackNavigator({
       headerTintColor: 'white',
       title: 'Search',
       headerLeft: <Ionicons style={styles.menuIcon} name="ios-menu-outline" size={35} onPress={ () => navigation.toggleDrawer() } />,
-      headerRight: <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
+      headerRight: <View style={styles.headerIconContainer}>
+        <CartControl />
+        <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
+        </View>
   })
 });
+//<Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
 
 const TabVab = createBottomTabNavigator({
   HomeAfterLogin: { screen: LandingScreenStack, navigationOptions: ({navigation}) => ({
@@ -288,10 +307,14 @@ const DashboardNav = createStackNavigator({
       headerTintColor: 'white',
       title: 'Your Location',
       headerLeft: <Ionicons style={styles.menuIcon} name="ios-menu-outline" size={35} onPress={ () => navigation.toggleDrawer() } />,
-      headerRight: <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
+      headerRight: <View style={styles.headerIconContainer}>
+        <CartControl />
+        <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
+        </View>
   })
 });
-
+// <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
+//<Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
 
 const DrawerNavigation = createDrawerNavigator({
     Home: StackNav,
@@ -317,24 +340,20 @@ const DrawerNavigation = createDrawerNavigator({
   // }
 });
 
+const CURRENT_CART_INFORMATION = 'current_cart_information';
+
 export class App extends Component {
   constructor(props) {
     super(props);
+    // this.state = {userlist: [{}], postlist: [{}], api: '', refreshing: false, cart: {selectedServices:[], customer: {}}};
 
+    // let storedCart = AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(value => {
+    //   let storedCart = JSON.parse(value);
+    //   console.log('stored cart: ' + JSON.stringify(storedCart));
+    //   this.state.cart = Object.assign({}, {selectedServices:[], customer: {}}, storedCart, this.props.cart);
+    //   console.log('stored cart: ' + JSON.stringify(this.state.cart));
+    // });
   }
-
-  // reset = () => {
-  //   //console.log(JSON.stringify(this.state.nav));
-  //   return this.props.navigator
-  //         .dispatch(NavigationActions.reset(
-  //         {
-  //             index: 0,
-  //             key: null,
-  //             actions: [
-  //               NavigationActions.navigate({ routeName: 'Home'})
-  //             ]
-  //         }));
-  // }  
 
   exitApp = () => {
     //console.log(JSON.stringify(val));
@@ -389,6 +408,11 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     marginLeft: 10,
     marginRight: 10
+  },
+  headerIconContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    padding: 5,
   }
 });
 

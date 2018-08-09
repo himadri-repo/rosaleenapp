@@ -125,6 +125,7 @@ export class ServiceScreen extends React.Component {
 */
 
 function mapStateToProps(state, ownProps) {
+  //console.log('cart [Services] : ' + JSON.stringify(state.cart));
   return {
       ...state
   };

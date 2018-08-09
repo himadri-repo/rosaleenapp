@@ -1,0 +1,111 @@
+//jshint ignore:start
+import React, { Component } from 'react';
+import {
+    Alert,
+    Button,
+    KeyboardAvoidingView,
+    Image,
+    StyleSheet,
+    Text,
+    TouchableHighlight,
+    View,
+    StatusBar,
+    BackHandler,
+    Platform,
+    AsyncStorage,
+} from 'react-native';
+import {StackActions, NavigationActions} from 'react-navigation';
+import Auth0 from 'react-native-auth0';
+import LoginForm from './LoginForm';
+import SignupForm from './SignupForm';
+import Loader from './Loader';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import {updateCart} from '../../actions/cartManagementActions';
+//redux
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+
+const CURRENT_CART_INFORMATION = 'current_cart_information';
+
+export class CartControl extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { cart: {selectedServices: [], customer:{} }};
+        let storedCart = AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(value => {
+            let storedCart = JSON.parse(value);
+            //console.log('stored cart: ' + JSON.stringify(storedCart));
+            this.state.cart = Object.assign({}, {selectedServices:[], customer: {}}, storedCart, this.props.cart);
+            // console.log('stored cart: ' + JSON.stringify(this.state.cart));
+
+            this.props.actions.updateCart(this.state.cart);
+        }).done();
+    }
+
+    manageCart = () => {
+        Alert.alert('Confirm', 'Do you want to clear the cart (Yes/No)?', [
+            {text: "Yes", onPress: ()=> {
+                console.log('Clearing cart state');
+                AsyncStorage.removeItem(CURRENT_CART_INFORMATION, error=> {
+                    if(error)
+                        console.log(error);
+                    this.state.cart = {selectedServices:[], customer: {}};
+                    this.props.actions.updateCart(this.state.cart);
+                });
+            }},
+            {text: "No", onPress: ()=> {
+                console.log('Not clearing cart state');
+            }, style:'cancel'},
+        ], {cancelable: true});
+    }
+    
+    render() {
+        let cart = Object.assign({}, {selectedServices:[], customer: {}}, this.state.cart, this.props.cart);
+        // console.log('cart in CartControl: ' + JSON.stringify(cart));
+        // console.log('cart in props: ' + JSON.stringify(this.props.cart));
+        // console.log('cart in state: ' + JSON.stringify(this.state.cart));
+        let platform = Platform.OS === 'ios' ? 'ios' : 'md';
+        let iconName = cart.selectedServices.length>0? `${platform}-cart` : `${platform}-cart`;
+
+        if(cart.selectedServices.length>0) {
+            return (
+                <Ionicons visible style={styles.menuIcon} name={iconName} color='white' size={35} onPress={()=>this.manageCart()} title='cart info'/>
+            );
+        }
+        else {
+            return null;
+        }
+    }
+}
+// <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => this.logout() } />
+
+// <Ionicons style={styles.menuIcon} name={iconName} color='white' size={35} onPress={()=>Alert.alert('Confirm', 'You have some items in your cart')} title='cart info'/>;
+
+function mapStateToProps(state, ownProps) {
+    return {
+        ...state
+    };
+}
+
+function mapDispatchToProps(dispatch, ownProps) {
+    return {
+        actions: bindActionCreators({updateCart}, dispatch),
+        //cartActions: bindActionCreators({updateCart}, dispatch),
+    }
+  }
+  
+
+export default connect(mapStateToProps, mapDispatchToProps)(CartControl);
+
+const styles = StyleSheet.create({
+    menuIcon: {
+      flex: 1,
+      color: '#ffffff',
+      marginLeft: 10,
+      marginRight: 10
+    },
+    headerIconContainer: {
+      flex: 1,
+      flexDirection: 'row',
+      padding: 5,
+    }
+});

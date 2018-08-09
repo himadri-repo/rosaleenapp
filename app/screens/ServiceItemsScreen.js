@@ -54,7 +54,7 @@ export class ServiceItemsScreen extends React.Component {
 
       let storedCart = AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(value => {
         let storedCart = JSON.parse(value);
-        console.log('stored cart: ' + JSON.stringify(storedCart));
+        //console.log('stored cart: ' + JSON.stringify(storedCart));
         this.state.cart = Object.assign({}, {selectedServices:[], customer: {}}, storedCart, this.props.cart);
       });
 
@@ -72,15 +72,6 @@ export class ServiceItemsScreen extends React.Component {
       //this.itemClicked = this.itemClicked.bind(this);
     }
 
-    componentDidMount() {
-      // AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(value => {
-      //   console.log('cart [AsyncStorage-DidMount]: ' + value);
-
-      //   let storedCart = JSON.parse(value);
-      //   this.state.cart = Object.assign({}, {selectedServices:[], customer: {}}, storedCart, this.props.cart);
-      // });
-    }
-
     componentWillUnmount() {
       console.log("\nServiceItemsScreen unmounting ...");
     }
@@ -91,17 +82,9 @@ export class ServiceItemsScreen extends React.Component {
     });
 
     pressItem(service) { 
-      // let acs = Object.assign({}, {getServices}, {updateCart});
-
-      // const keys = Object.keys(acs)
-
-      // console.log('keys : ' + keys + ' = length: ' + keys.length);
-
       let selectedServices = this.state.cart.selectedServices;
 
       let index = selectedServices.findIndex(srv=> srv.id===service.id);
-      //let index = selectedServices.indexOf(service);
-      //console.log('Index : ' + index);
       if(index<0) {
         selectedServices.push(service);
       }
@@ -114,7 +97,7 @@ export class ServiceItemsScreen extends React.Component {
       try
       {
         //console.log('actions: ' + JSON.stringify(this.props.actions.updateCart));
-        console.log('cart : ' + JSON.stringify(this.state.cart))
+        //console.log('cart : ' + JSON.stringify(this.state.cart))
         AsyncStorage.setItem(CURRENT_CART_INFORMATION, JSON.stringify(this.state.cart)).then(value=> {
           //console.log('cart in actions: ' + JSON.stringify(cart));
           this.props.actions.updateCart(this.state.cart);
@@ -122,9 +105,9 @@ export class ServiceItemsScreen extends React.Component {
             console.log('Unable to save cart to local state [Error: ' + reason + "]");
         });
 
-        AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(value => {
-          console.log('cart after pulling from AsyncStorage: ' + value);
-        });
+        // AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(value => {
+        //   console.log('cart after pulling from AsyncStorage: ' + value);
+        // });
         //this.props.actions.cartServices(this.state.cart);
       }
       catch(error) {
@@ -238,7 +221,7 @@ export class ServiceItemsScreen extends React.Component {
 }
 //styles.Button
 function mapStateToProps(state, ownProps) {
-  console.log('Cart [ServiceItemsScreen]-> ' + JSON.stringify(state.cart));
+  //console.log('Cart [ServiceItemsScreen]-> ' + JSON.stringify(state.cart));
 
   return {
       ...state

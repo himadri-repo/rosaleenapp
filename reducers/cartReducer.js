@@ -13,7 +13,7 @@ export default function cartReducer(state={}, action={}) {
             //console.log("\nCurrent state [LOAD_USERS_SUCCESS] : " + JSON.stringify(state) + "\n");
             //console.log("\nData [LOAD_USERS_SUCCESS] : " + JSON.stringify(action.payload) + "\n");
 
-            console.log('Cart: (R)' + JSON.stringify(action.payload));
+            //console.log('Cart: (R)' + JSON.stringify(action.payload));
             return Object.assign({}, state, action.payload);
             // return [
             //     ...state,

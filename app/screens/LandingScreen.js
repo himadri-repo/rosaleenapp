@@ -25,7 +25,6 @@ import {connect} from 'react-redux';
 //import {bindActionCreators} from 'redux';
 
 YellowBox.ignoreWarnings(['Warning: isMounted(...) is deprecated'])
-
 //import Router from '../routes';
 //import {AppRegistry} from 'react-native';
 
@@ -55,11 +54,6 @@ export class LandingScreen extends React.Component {
         //this.itemClicked = this.itemClicked.bind(this);
     }
 
-    /*static navigationOptions = ({ navigation }) => ({
-        title: 'Dashboard',
-        headerRight: <Button title="Logout" onPress={() => navigation.navigate('Home')} />
-    });*/
-    
     render () {
         return (
             <View style={styles.rootcontainer}>
