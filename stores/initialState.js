@@ -7,4 +7,5 @@ export default {
     serviceCategories: [],
     ajaxCallInProgress: 0,
     credentials:{},
+    cart:{}
 };

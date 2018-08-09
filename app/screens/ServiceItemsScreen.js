@@ -22,7 +22,8 @@ import {withNavigationFocus, StackActions, NavigationActions} from 'react-naviga
 //redux specific imports
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import {getServices} from '../../actions/serviceActions'
+import {getServices} from '../../actions/serviceActions';
+import {updateCart} from '../../actions/cartManagementActions';
 
 const CURRENT_CART_INFORMATION = 'current_cart_information';
 
@@ -51,6 +52,13 @@ export class ServiceItemsScreen extends React.Component {
         this.state.categoryItem = Object.assign({}, this.props.navigation.state.params.serviceCategory);
       }
 
+      let storedCart = AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(value => {
+        let storedCart = JSON.parse(value);
+        console.log('stored cart: ' + JSON.stringify(storedCart));
+        this.state.cart = Object.assign({}, {selectedServices:[], customer: {}}, storedCart, this.props.cart);
+      });
+
+
       this.state.services = Object.assign([{}], this.props.services);
 
       //console.log("\n\nServiceItems [props]: " + JSON.stringify(this.props));
@@ -64,6 +72,15 @@ export class ServiceItemsScreen extends React.Component {
       //this.itemClicked = this.itemClicked.bind(this);
     }
 
+    componentDidMount() {
+      // AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(value => {
+      //   console.log('cart [AsyncStorage-DidMount]: ' + value);
+
+      //   let storedCart = JSON.parse(value);
+      //   this.state.cart = Object.assign({}, {selectedServices:[], customer: {}}, storedCart, this.props.cart);
+      // });
+    }
+
     componentWillUnmount() {
       console.log("\nServiceItemsScreen unmounting ...");
     }
@@ -74,6 +91,12 @@ export class ServiceItemsScreen extends React.Component {
     });
 
     pressItem(service) { 
+      // let acs = Object.assign({}, {getServices}, {updateCart});
+
+      // const keys = Object.keys(acs)
+
+      // console.log('keys : ' + keys + ' = length: ' + keys.length);
+
       let selectedServices = this.state.cart.selectedServices;
 
       let index = selectedServices.findIndex(srv=> srv.id===service.id);
@@ -81,13 +104,32 @@ export class ServiceItemsScreen extends React.Component {
       //console.log('Index : ' + index);
       if(index<0) {
         selectedServices.push(service);
-      }  
-      else
-      {
+      }
+      else {
         selectedServices.splice(index, 1);
       }
 
       this.setState({selectedServices: selectedServices});
+
+      try
+      {
+        //console.log('actions: ' + JSON.stringify(this.props.actions.updateCart));
+        console.log('cart : ' + JSON.stringify(this.state.cart))
+        AsyncStorage.setItem(CURRENT_CART_INFORMATION, JSON.stringify(this.state.cart)).then(value=> {
+          //console.log('cart in actions: ' + JSON.stringify(cart));
+          this.props.actions.updateCart(this.state.cart);
+        }).catch(reason => {
+            console.log('Unable to save cart to local state [Error: ' + reason + "]");
+        });
+
+        AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(value => {
+          console.log('cart after pulling from AsyncStorage: ' + value);
+        });
+        //this.props.actions.cartServices(this.state.cart);
+      }
+      catch(error) {
+        console.log(error);
+      }
 
       //console.log('Cart -> ' + JSON.stringify(this.state.cart));
       // services = services.map((srv, idx) => {
@@ -109,14 +151,21 @@ export class ServiceItemsScreen extends React.Component {
     }
 
     onRefresh = () => {
-        this.setState({refreshing: true});
-        this.props.actions.getServices();
-        this.setState({refreshing: false});
+        try
+        {
+          this.setState({refreshing: true});
+          this.props.actions.getServices();
+          //this.props.serviceActions.getServices();
+          this.setState({refreshing: false});
+        }
+        catch(error) {
+          console.log(error);
+        }
     }
 
     async OnSalesReview() {
       //Alert.alert('Confirm', 'Do you want to proceed with billing?');
-      await AsyncStorage.setItem(CURRENT_CART_INFORMATION, JSON.stringify(this.state.cart));
+      //await AsyncStorage.setItem(CURRENT_CART_INFORMATION, JSON.stringify(this.state.cart));
       console.log(`Cart is stored into storage -> Services count: ${this.state.cart.selectedServices.length}`);
       this.props.navigation.navigate('ServiceSalesReviewTabLanding', {cart: this.state.cart});
     }
@@ -189,6 +238,8 @@ export class ServiceItemsScreen extends React.Component {
 }
 //styles.Button
 function mapStateToProps(state, ownProps) {
+  console.log('Cart [ServiceItemsScreen]-> ' + JSON.stringify(state.cart));
+
   return {
       ...state
   };
@@ -196,7 +247,8 @@ function mapStateToProps(state, ownProps) {
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-      actions: bindActionCreators({getServices}, dispatch)
+      actions: bindActionCreators(Object.assign({}, {getServices}, {updateCart}), dispatch),
+      //cartActions: bindActionCreators({updateCart}, dispatch),
   }
 }
 
