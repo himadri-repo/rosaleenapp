@@ -13,8 +13,9 @@ import {
     BackHandler,
     Platform,
     AsyncStorage,
+    TouchableOpacity,
 } from 'react-native';
-import {StackActions, NavigationActions} from 'react-navigation';
+import {withNavigationFocus, StackActions, NavigationActions} from 'react-navigation';
 import Auth0 from 'react-native-auth0';
 import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
@@ -41,6 +42,13 @@ export class CartControl extends React.Component {
         }).done();
     }
 
+    OnSalesReview = () => {
+        //Alert.alert('Confirm', 'Do you want to proceed with billing?');
+        //await AsyncStorage.setItem(CURRENT_CART_INFORMATION, JSON.stringify(this.state.cart));
+        console.log(`Cart is stored into storage -> Services count: ${this.state.cart.selectedServices.length}`);
+        this.props.navigation.navigate('ServiceSalesReviewTabLanding', {cart: this.state.cart});
+    }
+  
     manageCart = () => {
         Alert.alert('Confirm', 'Do you want to clear the cart (Yes/No)?', [
             {text: "Yes", onPress: ()=> {
@@ -68,7 +76,10 @@ export class CartControl extends React.Component {
 
         if(cart.selectedServices.length>0) {
             return (
-                <Ionicons visible style={styles.menuIcon} name={iconName} color='white' size={35} onPress={()=>this.manageCart()} title='cart info'/>
+                <TouchableOpacity activeOpacity={0.7} onPress={()=>this.OnSalesReview()}>
+                    <Ionicons visible style={styles.menuIcon} name={iconName} color='white' size={35} title='cart info'/>
+                    <Text style={styles.marktext}>{cart.selectedServices.length}</Text>
+                </TouchableOpacity>
             );
         }
         else {
@@ -94,7 +105,7 @@ function mapDispatchToProps(dispatch, ownProps) {
   }
   
 
-export default connect(mapStateToProps, mapDispatchToProps)(CartControl);
+export default connect(mapStateToProps, mapDispatchToProps)(withNavigationFocus(CartControl));
 
 const styles = StyleSheet.create({
     menuIcon: {
@@ -107,5 +118,18 @@ const styles = StyleSheet.create({
       flex: 1,
       flexDirection: 'row',
       padding: 5,
+    },
+    marktext: {
+        position: 'absolute',
+        marginLeft: 22,
+        marginTop: -5,
+        fontFamily: 'arial',
+        fontStyle: 'normal',
+        fontWeight: '700',
+        fontSize: 20,
+        color: '#ff0000',
+        backgroundColor: 'rgba(255,255,255, 0)',
+        /*width: 5,
+        height: 10*/
     }
 });

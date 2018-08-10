@@ -1,7 +1,7 @@
 //jshint esversion:6
 //jshint ignore:start
 import React, { Component } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, LayoutAnimation, UIManager, Platform, AsyncStorage, Alert, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, LayoutAnimation, UIManager, Platform, AsyncStorage, Alert, ScrollView, Picker } from 'react-native';
 import {withNavigationFocus, StackActions, NavigationActions} from 'react-navigation';
 //redux specific imports
 import {connect} from 'react-redux';
@@ -32,7 +32,7 @@ export class SalesReviewScreen extends Component
            expandVideo: false,
            buttonText: 'Customer Info',
            buttonTextVideo: 'Selected service(s)',
-           cart: {},
+           cart: {selectedServices:[], customer: {}, paymentMethod:'Cash'},
            errorMessage: ''
         };
     }
@@ -49,7 +49,7 @@ export class SalesReviewScreen extends Component
 
     static navigationOptions = ({ navigation }) => ({
         title: `Review orders (Services: ${navigation.state.params.cart.selectedServices.length})`,
-        /*headerRight: <Button title="Logout" onPress={() => navigation.navigate('Home')} />*/
+        headerRight: <Icon style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => logout() } />
     });
 
     expand_collapse_Function =(item)=>
@@ -59,7 +59,7 @@ export class SalesReviewScreen extends Component
             if( this.state.expand == false )
             {
                 this.setState({ 
-                  updatedHeight: 300, //this.state.textLayoutHeight, 
+                  updatedHeight: 340, //this.state.textLayoutHeight, 
                   expand: true, 
                   buttonText: 'Customer Info' 
                 }); 
@@ -76,7 +76,7 @@ export class SalesReviewScreen extends Component
         else if(item==2) {
             if( this.state.expandVideo == false )
             {
-                console.log('item TRUE -> ' + item);
+                //console.log('item TRUE -> ' + item);
                 this.setState({ 
                   updatedVideoHeight: 300, /*this.state.textLayoutHeight,*/ 
                   expandVideo: true, 
@@ -85,7 +85,7 @@ export class SalesReviewScreen extends Component
             }
             else
             {
-                console.log('item FALSE -> ' + item);
+                //console.log('item FALSE -> ' + item);
                 this.setState({ 
                   updatedVideoHeight: 0, 
                   expandVideo: false, 
@@ -97,9 +97,14 @@ export class SalesReviewScreen extends Component
  
     getHeight(height)
     {
-        console.log('Height => ' + height);
+        //console.log('Height => ' + height);
         height = CUSTOMERSECTION_HEIGHT;
         this.setState({ textLayoutHeight: height });
+    }
+
+    changePaymentMethod(paymentMethod) {
+        console.log('Payment Method: ' + paymentMethod);
+        this.setState({cart: {paymentMethod: paymentMethod}});
     }
  
     render()
@@ -116,6 +121,16 @@ export class SalesReviewScreen extends Component
                     <FormValidationMessage>{this.state.errorMessage}</FormValidationMessage>
                     <FormLabel>Name</FormLabel>
                     <FormInput onChangeText={(input) => Alert.alert('Confirmation', input)} placeholder='Enter name' keyboardType='default'></FormInput>
+                    <View style={styles.paymentContainer}>
+                        <FormLabel style={styles.paymentLebel}>Payment Mode</FormLabel>
+                        <Picker
+                            selectedValue={this.state.cart.paymentMethod}
+                            style={{ height: 50, width: 100, marginLeft: 50 }}
+                            onValueChange={(itemValue, itemIndex) => this.changePaymentMethod(itemValue)}>
+                            <Picker.Item label="Cash" value="Cash" />
+                            <Picker.Item label="Card" value="Card" />
+                        </Picker>
+                    </View>
                 </ScrollView>
                 <TouchableOpacity activeOpacity={0.7} style={styles.ButtonContent} 
                     onPress = {() => Alert.alert('Confirmation', 'Proceed to purchase >>')}>
@@ -125,7 +140,7 @@ export class SalesReviewScreen extends Component
         );
 
         const ServiceList = () => {
-            console.log(JSON.stringify(this.props.navigation.state.params.cart.selectedServices));
+            //console.log(JSON.stringify(this.props.navigation.state.params.cart.selectedServices));
             return this.props.navigation.state.params.cart.selectedServices.map(srv=> {
                 return (<Text key={'txt-' + srv.id}>{srv.name}</Text>);
             });
@@ -175,34 +190,6 @@ export class SalesReviewScreen extends Component
     }
 }
 
-// <Text style = { styles.ExpandViewInsideText } 
-// onLayout = {( value ) => this.getHeight( value.nativeEvent.layout.height )}>
-// This is another collapsible section, where we can put apply cupon etc into it. We can also show user the 
-// billing information and total amount to be paid. We can capture mode of payment also here.
-// </Text>
-
-// <Text style = { styles.ExpandViewInsideText } 
-// onLayout = {( value ) => this.getHeight( value.nativeEvent.layout.height )}>
-// Hello Developers, A warm welcome on ReactNativeCode.com, The best website for react native developers.
-// You can find high quality dynamic type of tutorials with examples on my website and to support us please like our Facebook page.
-// </Text>
-
-// <TouchableOpacity activeOpacity = { 0.7 } 
-// onPress = {()=> this.expand_collapse_Function(2) } 
-// style = { styles.TouchableOpacityStyle }>
-// <Text style = { styles.TouchableOpacityTitleText }>{this.state.buttonTextVideo}</Text>
-// </TouchableOpacity>
-// <View style = {{ height: this.state.updatedVideoHeight, overflow: 'hidden' }}>
-// <Video source={{uri: 'http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4'}}
-//     ref={(ref)=>{this.player=ref}} style={styles.ExpandViewInsideVideo}
-//     onLayout = {( value ) => this.getHeight( value.nativeEvent.layout.height )}/>
-// </View>
-
-
-// <Video
-// source={{ uri: 'http://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4' }}
-// style={styles.ExpandViewInsideVideo}/>
-
 function mapStateToProps(state, ownProps) {
     return {
         ...state
@@ -219,6 +206,12 @@ export default connect(mapStateToProps, mapDispatchToProps)(withNavigationFocus(
 
 const styles = StyleSheet.create(
 {
+    menuIcon: {
+        flex: 1,
+        color: '#ffffff',
+        marginLeft: 10,
+        marginRight: 10
+    },    
     MainContainer:
     {
         flex: 1,
@@ -291,7 +284,7 @@ const styles = StyleSheet.create(
     ExpandSubViewInsideView:
     {
         flex:1,
-        padding: 12,
+        padding: 6,
         /*borderWidth: 1,*/
     },
     ButtonContent: {
@@ -301,6 +294,22 @@ const styles = StyleSheet.create(
         justifyContent: 'center',
         alignItems: 'center',
         /*padding: 10,*/
+    },
+    paymentContainer: {
+        flex: 1, 
+        flexDirection: 'row',  
+        marginTop: 10, 
+        marginLeft: 20, 
+        marginRight: 20, 
+        borderBottomWidth: 1, 
+        borderBottomColor: '#121212'
+    },
+    paymentLebel: {
+        width: 30, 
+        justifyContent:'flex-start', 
+        alignContent:'flex-start', 
+        paddingLeft: 0, 
+        marginLeft: 0
     }
 });
 
