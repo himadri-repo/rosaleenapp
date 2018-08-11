@@ -1,7 +1,7 @@
 //jshint esversion:6
 //jshint ignore:start
 import React, { Component } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, LayoutAnimation, UIManager, Platform, AsyncStorage, Alert, ScrollView, Picker } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, LayoutAnimation, UIManager, Platform, AsyncStorage, Alert, ScrollView, Picker } from 'react-native';
 import {withNavigationFocus, StackActions, NavigationActions} from 'react-navigation';
 //redux specific imports
 import {connect} from 'react-redux';
@@ -9,7 +9,10 @@ import {bindActionCreators} from 'redux';
 import {getUsers} from '../../actions/userActions'
 import Icon from 'react-native-vector-icons/Ionicons';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
-import { FormLabel, FormInput, FormValidationMessage } from 'react-native-elements';
+import { Card, ListItem, FormLabel, FormInput, FormValidationMessage } from 'react-native-elements';
+import CartControl from '../components/CartControl';
+import {updateCart} from '../../actions/cartManagementActions';
+
 
 const CURRENT_CART_INFORMATION = 'current_cart_information';
 const CUSTOMERSECTION_HEIGHT = 300;
@@ -26,8 +29,8 @@ export class SalesReviewScreen extends Component
         }
         this.state = { 
            textLayoutHeight: 0,
-           updatedHeight: 0, 
-           updatedVideoHeight: 0, 
+           updatedHeight: 0, //340
+           updatedVideoHeight: 0,  //400
            expand: false,
            expandVideo: false,
            buttonText: 'Customer Info',
@@ -40,7 +43,10 @@ export class SalesReviewScreen extends Component
     componentDidMount() {
         AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(cartObject => {
             this.setState({cart: JSON.parse(cartObject)});
+            this.calculateTotalValue();
         })
+        
+        //console.log('state : ' + JSON.stringify(this.props));
     }
 
     componentWillUnmount() {
@@ -59,7 +65,7 @@ export class SalesReviewScreen extends Component
             if( this.state.expand == false )
             {
                 this.setState({ 
-                  updatedHeight: 340, //this.state.textLayoutHeight, 
+                  updatedHeight: 300, //this.state.textLayoutHeight, 
                   expand: true, 
                   buttonText: 'Customer Info' 
                 }); 
@@ -78,7 +84,7 @@ export class SalesReviewScreen extends Component
             {
                 //console.log('item TRUE -> ' + item);
                 this.setState({ 
-                  updatedVideoHeight: 300, /*this.state.textLayoutHeight,*/ 
+                  updatedVideoHeight: 400, /*this.state.textLayoutHeight,*/ 
                   expandVideo: true, 
                   buttonTextVideo: 'Selected service(s)'
                 }); 
@@ -94,6 +100,59 @@ export class SalesReviewScreen extends Component
             }        
         }
     }
+
+    manageCart = () => {
+        Alert.alert('Confirm', 'Do you want to clear the cart (Yes/No)?', [
+            {text: "Yes", onPress: ()=> {
+                //console.log('Clearing cart state');
+                AsyncStorage.removeItem(CURRENT_CART_INFORMATION, error=> {
+                    if(error)
+                        console.log(error);
+                    this.state.cart = {selectedServices:[], customer: {}, paymentMethod: 'Cash'};
+                    this.props.actions.updateCart(this.state.cart);
+                    this.props.navigation.navigate('ServiceCatTabLanding');
+                });
+            }},
+            {text: "No", onPress: ()=> {
+                console.log('Not clearing cart state');
+            }, style:'cancel'},
+        ], {cancelable: true});
+    }
+
+    deleteCartItem = (service) => {
+        Alert.alert('Confirm', `Do you want to delete ${service.name} service item (Yes/No)?`, [
+            {text: "Yes", onPress: ()=> {
+                let selectedServices = this.state.cart.selectedServices;
+                let index = selectedServices.findIndex(srv=> srv.id===service.id);
+                if(index>=0) {
+                selectedServices.splice(index, 1);
+                }
+        
+                this.updateCart();
+                this.state.cart.selectedServices = selectedServices;
+            }},
+            {text: "No", onPress: ()=> {
+                console.log('Not clearing cart state');
+            }, style:'cancel'},
+        ], {cancelable: true});
+    }
+
+    updateCart() {
+        try
+        {
+            AsyncStorage.setItem(CURRENT_CART_INFORMATION, JSON.stringify(this.state.cart)).then(value=> {
+                this.props.actions.updateCart(this.state.cart);
+                if(this.state.cart.selectedServices.length==0) {
+                    this.props.navigation.navigate('ServiceCatTabLanding');
+                }
+            }).catch(reason => {
+                console.log('Unable to save cart to local state [Error: ' + reason + "]");
+            });
+        }
+        catch(error) {
+          console.log(error);
+        }
+    }
  
     getHeight(height)
     {
@@ -102,9 +161,52 @@ export class SalesReviewScreen extends Component
         this.setState({ textLayoutHeight: height });
     }
 
+    calculateValue(service) {
+        let serviceItem = this.state.cart.selectedServices.find(srv=> srv.id===service.id);
+
+        if(serviceItem) {
+            let qty = parseInt(service.commercial.quantity);
+            serviceItem.commercial.quantity = qty;
+            let rate = parseFloat(service.commercial.rate);
+            serviceItem.commercial.rate = rate;
+            serviceItem.commercial.value = Math.round(qty * rate, 0);
+            
+            console.log('Service Item : ' + JSON.stringify(serviceItem));
+
+            this.updateCart();
+        }
+        this.calculateTotalValue();
+
+        console.log('cart: ' + JSON.stringify(this.state.cart));
+    }
+
+    calculateTotalValue() {
+        let totalValue = 0;
+        this.state.cart.selectedServices.map(srv=> {
+            totalValue += Math.round(parseInt(srv.commercial.quantity) * parseFloat(srv.commercial.rate),0);
+            //this.setState({totalValue: totalValue});
+
+        });
+        this.setState({totalValue: totalValue});
+        console.log('Total value : ' + totalValue);
+        return totalValue;
+    }
+
     changePaymentMethod(paymentMethod) {
-        console.log('Payment Method: ' + paymentMethod);
-        this.setState({cart: {paymentMethod: paymentMethod}});
+        //console.log('Payment Method: ' + paymentMethod);
+        this.state.cart = Object.assign({}, this.state.cart, {paymentMethod: paymentMethod});
+        //this.setState({paymentMethod: paymentMethod});
+        AsyncStorage.setItem(CURRENT_CART_INFORMATION, JSON.stringify(this.state.cart)).then(value=> {
+            //console.log('cart in actions: ' + JSON.stringify(cart));
+            this.props.actions.updateCart(this.state.cart);
+            // if(this.state.cart.selectedServices.length==0) {
+            //     this.props.navigation.navigate('ServiceCatTabLanding');
+            // }
+
+            console.log('cart in actions: ' + JSON.stringify(this.state.cart));
+          }).catch(reason => {
+              console.log('Unable to save cart to local state [Error: ' + reason + "]");
+        });
     }
  
     render()
@@ -132,29 +234,63 @@ export class SalesReviewScreen extends Component
                         </Picker>
                     </View>
                 </ScrollView>
-                <TouchableOpacity activeOpacity={0.7} style={styles.ButtonContent} 
-                    onPress = {() => Alert.alert('Confirmation', 'Proceed to purchase >>')}>
-                    <Text style = { styles.TouchableOpacityButtonTitleText}><Icon name={iconName} size={25} color="#900" style={styles.TouchableOpacityButtonTitleIcon}/> Checkout</Text>
-                </TouchableOpacity>
             </View>
         );
 
         const ServiceList = () => {
             //console.log(JSON.stringify(this.props.navigation.state.params.cart.selectedServices));
-            return this.props.navigation.state.params.cart.selectedServices.map(srv=> {
-                return (<Text key={'txt-' + srv.id}>{srv.name}</Text>);
+            //return this.props.navigation.state.params.cart.selectedServices.map(srv=> {
+            return this.state.cart.selectedServices.map(srv=> {
+                return (
+                    <ListItem
+                        key={'key-' + srv.id}
+                        roundAvatar
+                        title={srv.name}
+                        subtitle={<View style={{marginLeft:7}}>
+                            <Text>Technician: {(srv.technician?srv.technician.name:'')} | Service time: {srv.operation_time} min(s)</Text>
+                            <View style={{flex: 1, flexDirection: 'row'}}>
+                                <TextInput
+                                    style={{width: 75, marginRight: 7, textAlign: 'right'}}
+                                    placeholder="Quantity"
+                                    placeholderTextColor="rgba(44,44,44,0.4)"
+                                    returnKeyType="next"
+                                    keyboardType="numeric"
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                    defaultValue={srv.commercial.quantity.toString()}
+                                    onEndEditing={(event) => {   
+                                        let text = event.nativeEvent.text;
+                                        srv.commercial.quantity=parseInt(text);
+                                        this.calculateValue(srv);
+                                    }}/>
+                                <TextInput
+                                    style={{width: 75, marginRight: 7, textAlign: 'right'}}
+                                    placeholder="Rate"
+                                    placeholderTextColor="rgba(44,44,44,0.4)"
+                                    returnKeyType="next"
+                                    keyboardType="numeric"
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                    defaultValue={srv.commercial.rate.toString()}
+                                    onEndEditing={(event) => {
+                                            let text = event.nativeEvent.text;
+                                            srv.commercial.rate=parseFloat(text.trim());
+                                            this.calculateValue(srv);
+                                        }
+                                    }/>
+                                <Text style={{width: 100, marginTop: 15}}>= {srv.commercial.value}</Text>
+                            </View>
+                        </View>}
+                        avatar={{uri:srv.image}}
+                        rightIcon={<FAIcon name='trash-o' size={35} color='#ff0000' style={styles.deleteIcon} onPress={()=> this.deleteCartItem(srv)}/>}
+                        style={styles.listitem}>
+                    </ListItem>
+                );
             });
         }
-        //, height:30, width: 30
-        //styles.TouchableOpacityStyle && 
-        // <CustomerInfo onLayout = {( value ) => this.getHeight( value.nativeEvent.layout.height )}/>
-        // <Text style = { styles.ExpandViewInsideText } 
-        //         onLayout = {( value ) => this.getHeight( value.nativeEvent.layout.height )}>
-        //     This is another collapsible section, where we can put apply cupon etc into it. We can also show user the 
-        //     billing information and total amount to be paid. We can capture mode of payment also here.
-        // </Text>
-        // || {flex:1, justifyContent:'flex-start', marginRight:5}
-
+        //{`Technician: ${(srv.technician?srv.technician.name:'')} | Service time: ${srv.operation_time} min(s)`}
+        //hideChevron={true}
+        
         return(
             <ScrollView showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false}>
                 <View style={ styles.MainContainer }>
@@ -179,16 +315,37 @@ export class SalesReviewScreen extends Component
                             <FAIcon name={headVideoIconName} size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
                         </TouchableOpacity>
                         <View style = {{ height: this.state.updatedVideoHeight, overflow: 'hidden' }}>
-                            <View style={styles.ExpandSubViewInsideView}>
-                                <ServiceList />
+                            <View>
+                                <TouchableOpacity activeOpacity={0.7} onPress={()=> this.manageCart()}
+                                    style={{backgroundColor:'#044075', height:40, alignItems:'flex-end'}}>
+                                    <Icon visible style={styles.menuIcon} name='md-cart' color='white' size={35} title='cart info'/>
+                                    <Text style={styles.marktext}>{this.state.cart.selectedServices.length}</Text>
+                                </TouchableOpacity>
                             </View>
+                            <ScrollView showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} style={styles.ExpandSubViewInsideView} display={this.state.expandVideo?'flex':'none'}>
+                                <ServiceList />
+                                <ListItem key='id1' title={'Total value : ' + this.state.totalValue} style={{textAlign: 'right', alignContent: 'flex-end', margin: 5, padding:4}} hideChevron={true}></ListItem>
+                            </ScrollView>
                         </View>
                     </View>
+                    <TouchableOpacity activeOpacity={0.7} style={styles.ButtonContent} 
+                        onPress = {() => Alert.alert('Confirmation', 'About to save billing')}>
+                        <Text style = { styles.TouchableOpacityButtonTitleText}><Icon name={iconName} size={25} color="#900" style={styles.TouchableOpacityButtonTitleIcon}/> Checkout</Text>
+                    </TouchableOpacity>
                 </View>
             </ScrollView>
         );
     }
 }
+// <Card containerStyle={{padding: 0, width: '82%', borderWidth: 1}}>
+// <ServiceList />
+// </Card>
+
+// <View style={styles.ExpandSubViewInsideView}>
+// <ServiceList />
+// </View>
+
+
 
 function mapStateToProps(state, ownProps) {
     return {
@@ -198,7 +355,7 @@ function mapStateToProps(state, ownProps) {
   
 function mapDispatchToProps(dispatch, ownProps) {
     return {
-        actions: bindActionCreators({getUsers}, dispatch)
+        actions: bindActionCreators(Object.assign({}, {getUsers}, {updateCart}), dispatch)
     }
 }
 
@@ -219,14 +376,25 @@ const styles = StyleSheet.create(
         justifyContent: 'flex-start',
         alignItems: 'center',
         paddingTop: (Platform.OS === 'ios') ? 20 : 0,
-        borderWidth: 1,
+        /*borderWidth: 1,*/
     },
-
     ChildView:
     {
         borderWidth: 1,
         borderColor: '#00BCD4',
-        margin: 5
+        margin: 5,
+        borderWidth: 1,
+        borderRadius: 2,
+        borderColor: '#ddd',
+        borderBottomWidth: 0,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.8,
+        shadowRadius: 2,
+        elevation: 1,
+        marginLeft: 5,
+        marginRight: 5,
+        marginTop: 10,        
     },
     TouchableOpacityStyle:
     {
@@ -271,6 +439,12 @@ const styles = StyleSheet.create(
         paddingRight: 10,
         paddingLeft: 10,
     },
+    deleteIcon: {
+        textAlign: 'right',
+        textAlignVertical: 'center',
+        paddingLeft: 5,
+        paddingRight: 5,
+    },
     ExpandViewInsideVideo: {
         width: 300,
         height: 300,
@@ -284,7 +458,7 @@ const styles = StyleSheet.create(
     ExpandSubViewInsideView:
     {
         flex:1,
-        padding: 6,
+        /*padding: 6,*/
         /*borderWidth: 1,*/
     },
     ButtonContent: {
@@ -293,6 +467,11 @@ const styles = StyleSheet.create(
         backgroundColor: '#0000ff',
         justifyContent: 'center',
         alignItems: 'center',
+        padding: 0,
+        margin: 0,
+        height: 40,
+        width: '97%',
+        marginTop: 10
         /*padding: 10,*/
     },
     paymentContainer: {
@@ -310,6 +489,35 @@ const styles = StyleSheet.create(
         alignContent:'flex-start', 
         paddingLeft: 0, 
         marginLeft: 0
+    },
+    marktext: {
+        position: 'absolute',
+        paddingRight: 14,
+        marginTop: -5,
+        fontFamily: 'arial',
+        fontStyle: 'normal',
+        fontWeight: '700',
+        fontSize: 20,
+        color: '#ff0000',
+        backgroundColor: 'rgba(255,255,255, 0)',
+        /*width: 5,
+        height: 10*/
+    },
+    listitem: {
+        padding: 7, 
+        margin: 5,
+        borderWidth: 1,
+        borderRadius: 2,
+        borderColor: '#ddd',
+        borderBottomWidth: 0,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.8,
+        shadowRadius: 2,
+        elevation: 1,
+        marginLeft: 5,
+        marginRight: 5,
+        marginTop: 10,        
     }
 });
 

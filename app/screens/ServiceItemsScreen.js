@@ -83,6 +83,8 @@ export class ServiceItemsScreen extends React.Component {
 
     pressItem(service) { 
       let selectedServices = this.state.cart.selectedServices;
+      service = Object.assign({}, service, {technician: this.state.technician}, {commercial: {quantity: 0, rate: 0.0, value: 0.0}});
+      //console.log('updated Service with Technician : ' + JSON.stringify(service));
 
       let index = selectedServices.findIndex(srv=> srv.id===service.id);
       if(index<0) {
@@ -99,7 +101,7 @@ export class ServiceItemsScreen extends React.Component {
         //console.log('actions: ' + JSON.stringify(this.props.actions.updateCart));
         //console.log('cart : ' + JSON.stringify(this.state.cart))
         AsyncStorage.setItem(CURRENT_CART_INFORMATION, JSON.stringify(this.state.cart)).then(value=> {
-          //console.log('cart in actions: ' + JSON.stringify(cart));
+          //console.log('cart in actions: ' + JSON.stringify(this.state.cart));
           this.props.actions.updateCart(this.state.cart);
         }).catch(reason => {
             console.log('Unable to save cart to local state [Error: ' + reason + "]");
@@ -149,7 +151,7 @@ export class ServiceItemsScreen extends React.Component {
     async OnSalesReview() {
       //Alert.alert('Confirm', 'Do you want to proceed with billing?');
       //await AsyncStorage.setItem(CURRENT_CART_INFORMATION, JSON.stringify(this.state.cart));
-      console.log(`Cart is stored into storage -> Services count: ${this.state.cart.selectedServices.length}`);
+      //console.log(`Cart is stored into storage -> Services count: ${this.state.cart.selectedServices.length}`);
       this.props.navigation.navigate('ServiceSalesReviewTabLanding', {cart: this.state.cart});
     }
 

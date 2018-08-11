@@ -68,7 +68,10 @@ export class Login extends React.Component {
             .then(credentials => {
                 this.onSuccess(credentials);
             })
-            .catch(error => this.alert('Error', error.json.error_description));
+            .catch(error => {
+                this.setState({loading: false});
+                this.alert('Error', error.json.error_description)
+            });
     }
 
     createUser(username, password) {

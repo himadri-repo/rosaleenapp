@@ -93,7 +93,8 @@ export class HomeScreen extends React.Component {
           })
         .catch(error => {
           this.setState({loading: false});
-          Alert.alert('Error', JSON.stringify(error));
+          console.log ('Error : ' + error);
+          Alert.alert('Error', 'Unable to auto login. Please login with your valid credential.');
         });
       }
       catch(error) {

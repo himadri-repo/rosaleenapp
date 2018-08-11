@@ -45,7 +45,7 @@ export class CartControl extends React.Component {
     OnSalesReview = () => {
         //Alert.alert('Confirm', 'Do you want to proceed with billing?');
         //await AsyncStorage.setItem(CURRENT_CART_INFORMATION, JSON.stringify(this.state.cart));
-        console.log(`Cart is stored into storage -> Services count: ${this.state.cart.selectedServices.length}`);
+        //console.log(`Cart is stored into storage -> Services count: ${this.state.cart.selectedServices.length}`);
         this.props.navigation.navigate('ServiceSalesReviewTabLanding', {cart: this.state.cart});
     }
   
