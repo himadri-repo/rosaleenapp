@@ -1,7 +1,7 @@
 //jshint esversion:6
 //jshint ignore:start
 import React, { Component } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, LayoutAnimation, UIManager, Platform, AsyncStorage, Alert, ScrollView, Picker } from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, LayoutAnimation, UIManager, Platform, AsyncStorage, Alert, ScrollView, Picker, Dimensions } from 'react-native';
 import {withNavigationFocus, StackActions, NavigationActions} from 'react-navigation';
 //redux specific imports
 import {connect} from 'react-redux';
@@ -17,6 +17,7 @@ import {updateCart} from '../../actions/cartManagementActions';
 const CURRENT_CART_INFORMATION = 'current_cart_information';
 const CUSTOMERSECTION_HEIGHT = 300;
 
+const window = Dimensions.get('screen');
 
 export class SalesReviewScreen extends Component
 {
@@ -166,9 +167,9 @@ export class SalesReviewScreen extends Component
 
         if(serviceItem) {
             let qty = parseInt(service.commercial.quantity);
-            serviceItem.commercial.quantity = qty;
+            //serviceItem.commercial.quantity = qty;
             let rate = parseFloat(service.commercial.rate);
-            serviceItem.commercial.rate = rate;
+            //serviceItem.commercial.rate = rate;
             serviceItem.commercial.value = Math.round(qty * rate, 0);
             
             console.log('Service Item : ' + JSON.stringify(serviceItem));
@@ -248,16 +249,16 @@ export class SalesReviewScreen extends Component
                         title={srv.name}
                         subtitle={<View style={{marginLeft:7}}>
                             <Text>Technician: {(srv.technician?srv.technician.name:'')} | Service time: {srv.operation_time} min(s)</Text>
-                            <View style={{flex: 1, flexDirection: 'row'}}>
+                            <View style={styles.listitemContainer}>
                                 <TextInput
                                     style={{width: 75, marginRight: 7, textAlign: 'right'}}
                                     placeholder="Quantity"
                                     placeholderTextColor="rgba(44,44,44,0.4)"
-                                    returnKeyType="next"
+                                    /*returnKeyType="next"*/
                                     keyboardType="numeric"
                                     autoCapitalize="none"
                                     autoCorrect={false}
-                                    defaultValue={srv.commercial.quantity.toString()}
+                                    defaultValue={((srv.commercial && srv.commercial.quantity)?srv.commercial.quantity.toString():'0')}
                                     onEndEditing={(event) => {   
                                         let text = event.nativeEvent.text;
                                         srv.commercial.quantity=parseInt(text);
@@ -267,18 +268,18 @@ export class SalesReviewScreen extends Component
                                     style={{width: 75, marginRight: 7, textAlign: 'right'}}
                                     placeholder="Rate"
                                     placeholderTextColor="rgba(44,44,44,0.4)"
-                                    returnKeyType="next"
+                                    /*returnKeyType="next"*/
                                     keyboardType="numeric"
                                     autoCapitalize="none"
                                     autoCorrect={false}
-                                    defaultValue={srv.commercial.rate.toString()}
+                                    defaultValue={((srv.commercial && srv.commercial.rate)?srv.commercial.rate.toString():'0')}
                                     onEndEditing={(event) => {
                                             let text = event.nativeEvent.text;
                                             srv.commercial.rate=parseFloat(text.trim());
                                             this.calculateValue(srv);
                                         }
                                     }/>
-                                <Text style={{width: 100, marginTop: 15}}>= {srv.commercial.value}</Text>
+                                <Text style={{width: 100, marginTop: 20}}>= {((srv.commercial && srv.commercial.value)?srv.commercial.value:0)}</Text>
                             </View>
                         </View>}
                         avatar={{uri:srv.image}}
@@ -292,51 +293,59 @@ export class SalesReviewScreen extends Component
         //hideChevron={true}
         
         return(
-            <ScrollView showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false}>
-                <View style={ styles.MainContainer }>
-                    <View style = { styles.ChildView }>
-                        <TouchableOpacity activeOpacity = { 0.7 } 
-                                onPress = {()=> this.expand_collapse_Function(1) } 
-                                style = { styles.TouchableOpacityStyle }>
-                            <FAIcon name='female' size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
-                            <Text style = { styles.TouchableOpacityTitleText}>{this.state.buttonText}</Text>
-                            <FAIcon name={headIconName} size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
-                        </TouchableOpacity>
-                        <View style = {{ height: this.state.updatedHeight, overflow: 'hidden'}}>
-                            <CustomerInfo onLayout= {( value ) => this.getHeight( value.nativeEvent.layout.height )} />
-                        </View>
-                    </View>
-                    <View style = { styles.ChildView }>
-                        <TouchableOpacity activeOpacity = { 0.7 } 
-                                onPress = {()=> this.expand_collapse_Function(2) } 
-                                style = { styles.TouchableOpacityStyle }>
-                            <FAIcon name='female' size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
-                            <Text style = { styles.TouchableOpacityTitleText}>{this.state.buttonTextVideo}</Text>
-                            <FAIcon name={headVideoIconName} size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
-                        </TouchableOpacity>
-                        <View style = {{ height: this.state.updatedVideoHeight, overflow: 'hidden' }}>
-                            <View>
-                                <TouchableOpacity activeOpacity={0.7} onPress={()=> this.manageCart()}
-                                    style={{backgroundColor:'#044075', height:40, alignItems:'flex-end'}}>
-                                    <Icon visible style={styles.menuIcon} name='md-cart' color='white' size={35} title='cart info'/>
-                                    <Text style={styles.marktext}>{this.state.cart.selectedServices.length}</Text>
-                                </TouchableOpacity>
+            <View>
+                <ScrollView showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} 
+                    style={{height: '92%'}}>
+                    <View style={ styles.MainContainer }>
+                        <View style = { styles.ChildView }>
+                            <TouchableOpacity activeOpacity = { 0.7 } 
+                                    onPress = {()=> this.expand_collapse_Function(1) } 
+                                    style = { styles.TouchableOpacityStyle }>
+                                <FAIcon name='female' size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
+                                <Text style = { styles.TouchableOpacityTitleText}>{this.state.buttonText}</Text>
+                                <FAIcon name={headIconName} size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
+                            </TouchableOpacity>
+                            <View style = {{ height: this.state.updatedHeight, overflow: 'hidden'}}>
+                                <CustomerInfo onLayout= {( value ) => this.getHeight( value.nativeEvent.layout.height )} />
                             </View>
-                            <ScrollView showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} style={styles.ExpandSubViewInsideView} display={this.state.expandVideo?'flex':'none'}>
-                                <ServiceList />
+                        </View>
+                        <View style = { styles.ChildView }>
+                            <TouchableOpacity activeOpacity = { 0.7 } 
+                                    onPress = {()=> this.expand_collapse_Function(2) } 
+                                    style = { styles.TouchableOpacityStyle }>
+                                <FAIcon name='female' size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
+                                <Text style = { styles.TouchableOpacityTitleText}>{this.state.buttonTextVideo}</Text>
+                                <FAIcon name={headVideoIconName} size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
+                            </TouchableOpacity>
+                            <View style = {{ height: this.state.updatedVideoHeight, overflow: 'hidden' }}>
+                                <View>
+                                    <TouchableOpacity activeOpacity={0.7} onPress={()=> this.manageCart()}
+                                        style={{backgroundColor:'#044075', height:40, alignItems:'flex-end'}}>
+                                        <Icon visible style={styles.menuIcon} name='md-cart' color='white' size={35} title='cart info'/>
+                                        <Text style={styles.marktext}>{this.state.cart.selectedServices.length}</Text>
+                                    </TouchableOpacity>
+                                </View>
+                                <ScrollView showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} style={styles.ExpandSubViewInsideView} display={this.state.expandVideo?'flex':'none'}>
+                                    <ServiceList />
+                                </ScrollView>
                                 <ListItem key='id1' title={'Total value : ' + this.state.totalValue} style={{textAlign: 'right', alignContent: 'flex-end', margin: 5, padding:4}} hideChevron={true}></ListItem>
-                            </ScrollView>
+                            </View>
                         </View>
                     </View>
-                    <TouchableOpacity activeOpacity={0.7} style={styles.ButtonContent} 
+                </ScrollView>
+                <View style={{backgroundColor: '#0000ff', margin: 6}}>
+                    <TouchableOpacity 
                         onPress = {() => Alert.alert('Confirmation', 'About to save billing')}>
-                        <Text style = { styles.TouchableOpacityButtonTitleText}><Icon name={iconName} size={25} color="#900" style={styles.TouchableOpacityButtonTitleIcon}/> Checkout</Text>
+                        <Text style = { styles.TouchableOpacityButtonTitleText}>
+                            <Icon name={iconName} size={25} color="#900" style={styles.TouchableOpacityButtonTitleIcon}/> Checkout</Text>
                     </TouchableOpacity>
                 </View>
-            </ScrollView>
+            </View>
         );
     }
 }
+//, position: 'absolute', width: '97%', marginTop: window.height-220
+//activeOpacity={0.7} style={styles.ButtonContent} 
 // <Card containerStyle={{padding: 0, width: '82%', borderWidth: 1}}>
 // <ServiceList />
 // </Card>
@@ -421,7 +430,8 @@ const styles = StyleSheet.create(
         textAlignVertical: 'center',
         color: '#fff',
         fontSize: 20,
-        width: '90%'
+        width: '90%',
+        height: 40
     },    
     TouchableOpacityTitleIcon: {
         textAlign: 'right',
@@ -517,7 +527,13 @@ const styles = StyleSheet.create(
         elevation: 1,
         marginLeft: 5,
         marginRight: 5,
-        marginTop: 10,        
+        marginTop: 10,
+        height: 60,
+    },
+    listitemContainer: {
+        flex: 1, 
+        flexDirection: 'row', 
+        height: 60
     }
 });
 
