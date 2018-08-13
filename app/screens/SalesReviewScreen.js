@@ -218,7 +218,7 @@ export class SalesReviewScreen extends Component
         let headVideoIconName = this.state.expandVideo?'angle-double-up':'angle-double-down';
         const CustomerInfo = (props) => (
             <View style={styles.ExpandSubViewInsideView}>
-                <ScrollView>
+                <ScrollView showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false}>
                     <FormLabel>Mobile</FormLabel>
                     <FormInput onChangeText={(input) => Alert.alert('Confirmation', input)} placeholder='Enter mobile number' keyboardType='phone-pad'></FormInput>
                     <FormValidationMessage>{this.state.errorMessage}</FormValidationMessage>
@@ -295,7 +295,7 @@ export class SalesReviewScreen extends Component
         return(
             <View>
                 <ScrollView showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} 
-                    style={{height: '92%'}}>
+                    style={{height: '90%'}}>
                     <View style={ styles.MainContainer }>
                         <View style = { styles.ChildView }>
                             <TouchableOpacity activeOpacity = { 0.7 } 
@@ -333,9 +333,10 @@ export class SalesReviewScreen extends Component
                         </View>
                     </View>
                 </ScrollView>
-                <View style={{backgroundColor: '#0000ff', margin: 6}}>
+                <View style={{backgroundColor: '#0000ff', margin: 6, height: '10%'}}>
                     <TouchableOpacity 
-                        onPress = {() => Alert.alert('Confirmation', 'About to save billing')}>
+                        onPress = {() => Alert.alert('Confirmation', 'About to save billing')}
+                        style={{height: '100%'}}>
                         <Text style = { styles.TouchableOpacityButtonTitleText}>
                             <Icon name={iconName} size={25} color="#900" style={styles.TouchableOpacityButtonTitleIcon}/> Checkout</Text>
                     </TouchableOpacity>
