@@ -21,7 +21,7 @@ import LoginForm from './LoginForm';
 import SignupForm from './SignupForm';
 import Loader from './Loader';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import {updateCart} from '../../actions/cartManagementActions';
+import {updateCartSuccess} from '../../actions/cartManagementActions';
 //redux
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -38,7 +38,7 @@ export class CartControl extends React.Component {
             this.state.cart = Object.assign({}, {selectedServices:[], customer: {}}, storedCart, this.props.cart);
             // console.log('stored cart: ' + JSON.stringify(this.state.cart));
 
-            this.props.actions.updateCart(this.state.cart);
+            this.props.actions.updateCartSuccess(this.state.cart);
         }).done();
     }
 
@@ -57,7 +57,7 @@ export class CartControl extends React.Component {
                     if(error)
                         console.log(error);
                     this.state.cart = {selectedServices:[], customer: {}};
-                    this.props.actions.updateCart(this.state.cart);
+                    this.props.actions.updateCartSuccess(this.state.cart);
                 });
             }},
             {text: "No", onPress: ()=> {
@@ -99,7 +99,7 @@ function mapStateToProps(state, ownProps) {
 
 function mapDispatchToProps(dispatch, ownProps) {
     return {
-        actions: bindActionCreators({updateCart}, dispatch),
+        actions: bindActionCreators({updateCartSuccess}, dispatch),
         //cartActions: bindActionCreators({updateCart}, dispatch),
     }
   }

@@ -2,7 +2,8 @@
 
 import * as types from './actionTypes';
 import { startAjaxCall, errorAjaxCall } from './ajaxCallActions';
-import {AsyncStorage} from 'react-native';
+//import {AsyncStorage} from 'react-native';
+import cartApi from '../api/cartApi';
 
 export function updateCartSuccess(cart) {
     return {type: types.UPDATE_CART_SUCCESS, payload: cart};
@@ -10,8 +11,15 @@ export function updateCartSuccess(cart) {
 
 const CURRENT_CART_INFORMATION = 'current_cart_information';
 export function updateCart(cart) {
-    //console.log('cart in actions top: ' + JSON.stringify(cart));
+    console.log('cart in actions top: ' + JSON.stringify(cart));
     return (dispatch => {
-        dispatch(updateCartSuccess(cart));
+        dispatch(startAjaxCall());
+        cartApi.saveCart(cart).then(savedCart=> {
+            dispatch(updateCartSuccess(savedCart));
+        })
+        .catch(error => {
+            console.log(error);
+            dispatch(errorAjaxCall(error));
+        });
     });
 }

@@ -11,8 +11,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
 import { Card, ListItem, FormLabel, FormInput, FormValidationMessage } from 'react-native-elements';
 import CartControl from '../components/CartControl';
-import {updateCart} from '../../actions/cartManagementActions';
-
+import {updateCart, updateCartSuccess} from '../../actions/cartManagementActions';
 
 const CURRENT_CART_INFORMATION = 'current_cart_information';
 const CUSTOMERSECTION_HEIGHT = 300;
@@ -44,6 +43,7 @@ export class SalesReviewScreen extends Component
     componentDidMount() {
         AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(cartObject => {
             this.setState({cart: JSON.parse(cartObject)});
+            this.state.cart = Object.assign({}, this.state.cart, {paymentMethod: 'Cash'});
             this.calculateTotalValue();
         })
         
@@ -110,7 +110,8 @@ export class SalesReviewScreen extends Component
                     if(error)
                         console.log(error);
                     this.state.cart = {selectedServices:[], customer: {}, paymentMethod: 'Cash'};
-                    this.props.actions.updateCart(this.state.cart);
+                    //this.props.actions.updateCart(this.state.cart);
+                    this.props.actions.updateCartSuccess(this.state.cart);
                     this.props.navigation.navigate('ServiceCatTabLanding');
                 });
             }},
@@ -142,7 +143,8 @@ export class SalesReviewScreen extends Component
         try
         {
             AsyncStorage.setItem(CURRENT_CART_INFORMATION, JSON.stringify(this.state.cart)).then(value=> {
-                this.props.actions.updateCart(this.state.cart);
+                //this.props.actions.updateCart(this.state.cart);
+                this.props.actions.updateCartSuccess(this.state.cart);
                 if(this.state.cart.selectedServices.length==0) {
                     this.props.navigation.navigate('ServiceCatTabLanding');
                 }
@@ -189,6 +191,7 @@ export class SalesReviewScreen extends Component
 
         });
         this.setState({totalValue: totalValue});
+        this.state.cart.totalValue = this.state.totalValue;
         console.log('Total value : ' + totalValue);
         return totalValue;
     }
@@ -199,7 +202,8 @@ export class SalesReviewScreen extends Component
         //this.setState({paymentMethod: paymentMethod});
         AsyncStorage.setItem(CURRENT_CART_INFORMATION, JSON.stringify(this.state.cart)).then(value=> {
             //console.log('cart in actions: ' + JSON.stringify(cart));
-            this.props.actions.updateCart(this.state.cart);
+            //this.props.actions.updateCart(this.state.cart);
+            this.props.actions.updateCartSuccess(this.state.cart);
             // if(this.state.cart.selectedServices.length==0) {
             //     this.props.navigation.navigate('ServiceCatTabLanding');
             // }
@@ -208,6 +212,45 @@ export class SalesReviewScreen extends Component
           }).catch(reason => {
               console.log('Unable to save cart to local state [Error: ' + reason + "]");
         });
+    }
+
+    saveCart() {
+        this.calculateTotalValue();
+        
+        Alert.alert('Confirmation', 'Are you sure to checkout/billing (Yes/No)?', [
+            {text:'Yes', onPress:()=> {
+                //call save cart here
+                console.log('updateCart being called here');
+                console.log('Cart to be inserted ' + JSON.stringify(this.state.cart));
+                this.props.actions.updateCart(this.state.cart);
+                AsyncStorage.removeItem(CURRENT_CART_INFORMATION, error=> {
+                    if(error)
+                        console.log(error);
+                    this.state.cart = {selectedServices:[], customer: {}, paymentMethod: 'Cash'};
+                    //this.props.actions.updateCart(this.state.cart);
+                    this.props.actions.updateCartSuccess(this.state.cart);
+                    this.props.navigation.navigate('ServiceCatTabLanding');
+                });
+                // .then(result => {
+                //     console.log('result : ' + result);
+                // })
+                // .catch(error=> console.log('Error : ' + error));
+            }},
+            {text: 'No', onPress:()=> {
+                console.log('User cancelled the operation. Don\'t want to save the cart');
+            }, style: 'cancel'}
+        ], {cancelable: true})
+    }
+
+    updateCustomerInfo(inputValue, fieldType) {
+        if(fieldType==='mobile') {
+            this.state.cart.customer = Object.assign({}, this.state.cart.customer, {mobile: inputValue});
+        }
+        else if(fieldType==='name') {
+            this.state.cart.customer = Object.assign({}, this.state.cart.customer, {name: inputValue});
+        }
+
+        console.log('Customer: ' + JSON.stringify(this.state.cart.customer));
     }
  
     render()
@@ -220,10 +263,17 @@ export class SalesReviewScreen extends Component
             <View style={styles.ExpandSubViewInsideView}>
                 <ScrollView showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false}>
                     <FormLabel>Mobile</FormLabel>
-                    <FormInput onChangeText={(input) => Alert.alert('Confirmation', input)} placeholder='Enter mobile number' keyboardType='phone-pad'></FormInput>
+                    <FormInput onEndEditing={(event) => {
+                        let text = event.nativeEvent.text;
+                        this.updateCustomerInfo(text, 'mobile');
+                    }} placeholder='Enter mobile number' keyboardType='phone-pad' value={this.state.cart.customer.mobile}></FormInput>
                     <FormValidationMessage>{this.state.errorMessage}</FormValidationMessage>
                     <FormLabel>Name</FormLabel>
-                    <FormInput onChangeText={(input) => Alert.alert('Confirmation', input)} placeholder='Enter name' keyboardType='default'></FormInput>
+                    <FormInput onEndEditing={(event) => {
+                        let text = event.nativeEvent.text;
+                        //srv.commercial.quantity=parseInt(text);
+                        this.updateCustomerInfo(text, 'name');
+                    }} placeholder='Enter name' keyboardType='default' value={this.state.cart.customer.name}></FormInput>
                     <View style={styles.paymentContainer}>
                         <FormLabel style={styles.paymentLebel}>Payment Mode</FormLabel>
                         <Picker
@@ -237,6 +287,8 @@ export class SalesReviewScreen extends Component
                 </ScrollView>
             </View>
         );
+        // <FormInput onChangeText={(input) => Alert.alert('Confirmation', input)} placeholder='Enter mobile number' keyboardType='phone-pad'></FormInput>
+        // <FormInput onChangeText={(input) => Alert.alert('Confirmation', input)} placeholder='Enter name' keyboardType='default'></FormInput>
 
         const ServiceList = () => {
             //console.log(JSON.stringify(this.props.navigation.state.params.cart.selectedServices));
@@ -335,7 +387,7 @@ export class SalesReviewScreen extends Component
                 </ScrollView>
                 <View style={{backgroundColor: '#0000ff', margin: 6, height: '10%'}}>
                     <TouchableOpacity 
-                        onPress = {() => Alert.alert('Confirmation', 'About to save billing')}
+                        onPress = {() => this.saveCart()}
                         style={{height: '100%'}}>
                         <Text style = { styles.TouchableOpacityButtonTitleText}>
                             <Icon name={iconName} size={25} color="#900" style={styles.TouchableOpacityButtonTitleIcon}/> Checkout</Text>
@@ -365,7 +417,7 @@ function mapStateToProps(state, ownProps) {
   
 function mapDispatchToProps(dispatch, ownProps) {
     return {
-        actions: bindActionCreators(Object.assign({}, {getUsers}, {updateCart}), dispatch)
+        actions: bindActionCreators(Object.assign({}, {getUsers}, {updateCart}, {updateCartSuccess}), dispatch)
     }
 }
 

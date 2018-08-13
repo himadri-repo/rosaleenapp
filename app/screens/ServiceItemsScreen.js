@@ -23,7 +23,7 @@ import {withNavigationFocus, StackActions, NavigationActions} from 'react-naviga
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {getServices} from '../../actions/serviceActions';
-import {updateCart} from '../../actions/cartManagementActions';
+import {updateCartSuccess} from '../../actions/cartManagementActions';
 
 const CURRENT_CART_INFORMATION = 'current_cart_information';
 
@@ -102,7 +102,7 @@ export class ServiceItemsScreen extends React.Component {
         //console.log('cart : ' + JSON.stringify(this.state.cart))
         AsyncStorage.setItem(CURRENT_CART_INFORMATION, JSON.stringify(this.state.cart)).then(value=> {
           //console.log('cart in actions: ' + JSON.stringify(this.state.cart));
-          this.props.actions.updateCart(this.state.cart);
+          this.props.actions.updateCartSuccess(this.state.cart);
         }).catch(reason => {
             console.log('Unable to save cart to local state [Error: ' + reason + "]");
         });
@@ -232,7 +232,7 @@ function mapStateToProps(state, ownProps) {
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-      actions: bindActionCreators(Object.assign({}, {getServices}, {updateCart}), dispatch),
+      actions: bindActionCreators(Object.assign({}, {getServices}, {updateCartSuccess}), dispatch),
       //cartActions: bindActionCreators({updateCart}, dispatch),
   }
 }
