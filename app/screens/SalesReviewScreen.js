@@ -256,6 +256,7 @@ export class SalesReviewScreen extends Component
                     console.log('updateCart being called here');
                     console.log('Cart to be inserted ' + JSON.stringify(this.state.cart));
                     this.props.actions.updateCart(this.state.cart, result=> {
+                        console.log('result after API call: ' + JSON.stringify(result));
                         this.removeCart();
                     });
                     // AsyncStorage.removeItem(CURRENT_CART_INFORMATION, error=> {
