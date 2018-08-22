@@ -40,20 +40,24 @@ export class CartControl extends React.Component {
 
         //     this.props.actions.updateCartSuccess(this.state.cart);
         // }).done();
-        this.loadUpdatedState();
+        this.loadUpdatedState(this.props.cart);
     }
     //didFocus
     focusListener = this.props.navigation.addListener('willFocus', payload => {
-        //this.loadUpdatedState();
+        this.loadUpdatedState({});
         //console.log('Focused -> ' + JSON.stringify(payload));
         console.log('count: ' + this.state.cart.selectedServices.length);
-        console.log(JSON.stringify(this.state.cart.selectedServices));
+        //console.log(JSON.stringify(this.state.cart.selectedServices));
         
         if(payload.state.params && payload.state.params.cart) {
+            // let storedCart = AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(value => {
+            //     let updatedCart = JSON.parse(value);
+            //     //console.log('updated state at Cart control: ' + JSON.stringify(updatedCart));
+            // }).done();
             this.state.cart = payload.state.params.cart;
 
             this.props.actions.updateCartSuccess(this.state.cart);
-            console.log('cart -> ' + JSON.stringify(this.state.cart));
+            //console.log('cart -> ' + JSON.stringify(this.state.cart));
         }
     });
 
@@ -87,11 +91,11 @@ export class CartControl extends React.Component {
     //     });
     // }
 
-    loadUpdatedState = () => {
+    loadUpdatedState = (defaultCart) => {
         let storedCart = AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(value => {
-            let storedCart = JSON.parse(value);
+            let updatedCart = JSON.parse(value);
             //console.log('stored cart: ' + JSON.stringify(storedCart));
-            this.state.cart = Object.assign({}, {selectedServices:[], customer: {}}, storedCart, this.props.cart);
+            this.state.cart = Object.assign({}, {selectedServices:[], customer: {}}, updatedCart, defaultCart);
             // console.log('stored cart: ' + JSON.stringify(this.state.cart));
 
             this.props.actions.updateCartSuccess(this.state.cart);

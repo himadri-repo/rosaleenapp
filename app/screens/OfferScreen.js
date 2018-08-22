@@ -152,6 +152,8 @@ export class OfferScreen extends React.Component {
 
 function mapStateToProps(state, ownProps) {
     //console.log("mapState2Props : " + (JSON.stringify(state.serviceCategories)) + " - " + state.serviceCategories.length);
+
+    //console.log('updated state [offer]: ' + JSON.stringify(state.cart));
     return {
         ...state
     };
