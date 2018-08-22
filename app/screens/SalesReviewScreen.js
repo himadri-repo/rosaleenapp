@@ -1,7 +1,7 @@
 //jshint esversion:6
 //jshint ignore:start
 import React, { Component } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, LayoutAnimation, UIManager, Platform, AsyncStorage, Alert, ScrollView, Picker, Dimensions } from 'react-native';
+import { PanResponder, StyleSheet, View, Text, TextInput, TouchableOpacity, LayoutAnimation, UIManager, Platform, AsyncStorage, Alert, ScrollView, Picker, Dimensions } from 'react-native';
 import {withNavigationFocus, StackActions, NavigationActions} from 'react-navigation';
 //redux specific imports
 import {connect} from 'react-redux';
@@ -29,25 +29,43 @@ export class SalesReviewScreen extends Component
         }
         this.state = { 
            textLayoutHeight: 0,
-           updatedHeight: 0, //340
-           updatedVideoHeight: 0,  //400
-           expand: false,
-           expandVideo: false,
+           updatedHeight: 300, //340
+           updatedVideoHeight: 430,  //400
+           expand: true,
+           expandVideo: true,
            buttonText: 'Customer Info',
            buttonTextVideo: 'Selected service(s)',
            cart: {selectedServices:[], customer: {}, paymentMethod:'Cash'},
-           errorMessage: ''
+           errorMessage: '',
+           mode: 'pricereview'
         };
     }
+
  
     componentDidMount() {
         AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(cartObject => {
             this.setState({cart: JSON.parse(cartObject)});
             this.state.cart = Object.assign({}, this.state.cart, {paymentMethod: 'Cash'});
             this.calculateTotalValue();
-        })
-        
+        });
+
         //console.log('state : ' + JSON.stringify(this.props));
+    }
+
+    componentWillMount() {
+        this.state._panResponder = PanResponder.create({
+            onMoveShouldSetResponderCapture: () => true,
+            onMoveShouldSetPanResponderCapture: (evt,gestureState) => {
+              return Math.abs(gestureState.dy) > 2 ;  // can adjust this num
+            },
+            onPanResponderGrant: (e, gestureState) => {
+              this.state.fScroll.setNativeProps({ scrollEnabled: false })
+            },
+            onPanResponderMove: () => { },
+            onPanResponderTerminationRequest: () => true,
+        });
+
+        console.log(JSON.stringify(this.state._panResponder));
     }
 
     componentWillUnmount() {
@@ -85,7 +103,7 @@ export class SalesReviewScreen extends Component
             {
                 //console.log('item TRUE -> ' + item);
                 this.setState({ 
-                  updatedVideoHeight: 400, /*this.state.textLayoutHeight,*/ 
+                  updatedVideoHeight: 430, /*this.state.textLayoutHeight,*/ 
                   expandVideo: true, 
                   buttonTextVideo: 'Selected service(s)'
                 }); 
@@ -112,13 +130,24 @@ export class SalesReviewScreen extends Component
                     this.state.cart = {selectedServices:[], customer: {}, paymentMethod: 'Cash'};
                     //this.props.actions.updateCart(this.state.cart);
                     this.props.actions.updateCartSuccess(this.state.cart);
-                    this.props.navigation.navigate('ServiceCatTabLanding');
+                    this.props.navigation.navigate('ServiceCatTabLanding', {cart: {selectedServices:[], customer: {}, paymentMethod: 'Cash'}});
                 });
             }},
             {text: "No", onPress: ()=> {
                 console.log('Not clearing cart state');
             }, style:'cancel'},
         ], {cancelable: true});
+    }
+
+    removeCart = () => {
+        AsyncStorage.removeItem(CURRENT_CART_INFORMATION, error=> {
+            if(error)
+                console.log(error);
+            this.state.cart = {selectedServices:[], customer: {}, paymentMethod: 'Cash'};
+            //this.props.actions.updateCart(this.state.cart);
+            this.props.actions.updateCartSuccess(this.state.cart);
+            this.props.navigation.navigate('ServiceCatTabLanding', {cart: {selectedServices:[], customer: {}, paymentMethod: 'Cash'}});
+        });
     }
 
     deleteCartItem = (service) => {
@@ -215,40 +244,53 @@ export class SalesReviewScreen extends Component
     }
 
     saveCart() {
-        this.calculateTotalValue();
-        
-        Alert.alert('Confirmation', 'Are you sure to checkout/billing (Yes/No)?', [
-            {text:'Yes', onPress:()=> {
-                //call save cart here
-                console.log('updateCart being called here');
-                console.log('Cart to be inserted ' + JSON.stringify(this.state.cart));
-                this.props.actions.updateCart(this.state.cart);
-                AsyncStorage.removeItem(CURRENT_CART_INFORMATION, error=> {
-                    if(error)
-                        console.log(error);
-                    this.state.cart = {selectedServices:[], customer: {}, paymentMethod: 'Cash'};
-                    //this.props.actions.updateCart(this.state.cart);
-                    this.props.actions.updateCartSuccess(this.state.cart);
-                    this.props.navigation.navigate('ServiceCatTabLanding');
-                });
-                // .then(result => {
-                //     console.log('result : ' + result);
-                // })
-                // .catch(error=> console.log('Error : ' + error));
-            }},
-            {text: 'No', onPress:()=> {
-                console.log('User cancelled the operation. Don\'t want to save the cart');
-            }, style: 'cancel'}
-        ], {cancelable: true})
+
+        if(this.state.mode==='pricereview') {
+            this.calculateTotalValue();
+            this.setState({mode: 'customer'});
+        }
+        else if(this.state.mode==='customer') {
+            Alert.alert('Confirmation', 'Are you sure to checkout/billing (Yes/No)?', [
+                {text:'Yes', onPress:()=> {
+                    //call save cart here
+                    console.log('updateCart being called here');
+                    console.log('Cart to be inserted ' + JSON.stringify(this.state.cart));
+                    this.props.actions.updateCart(this.state.cart, result=> {
+                        this.removeCart();
+                    });
+                    // AsyncStorage.removeItem(CURRENT_CART_INFORMATION, error=> {
+                    //     if(error)
+                    //         console.log(error);
+                    //     //this.state.cart = Object.assign({}, this.state.cart, {selectedServices:[], customer: {}, paymentMethod: 'Cash'});
+                    //     this.state.cart = Object.assign({}, {selectedServices:[], customer: {}, paymentMethod: 'Cash'});
+                    //     this.state.cart.selectedServices = [];
+                    //     this.updateCart();
+                    //     //this.props.actions.updateCart(this.state.cart);
+                    //     //this.props.actions.updateCartSuccess(this.state.cart);
+                    //     //this.props.navigation.navigate('ServiceCatTabLanding');
+                    // }).done();
+                    // .then(result => {
+                    //     console.log('result : ' + result);
+                    // })
+                    // .catch(error=> console.log('Error : ' + error));
+                }},
+                {text: 'No', onPress:()=> {
+                    console.log('User cancelled the operation. Don\'t want to save the cart');
+                }, style: 'cancel'}
+            ], {cancelable: true})
+        }
     }
 
     updateCustomerInfo(inputValue, fieldType) {
         if(fieldType==='mobile') {
+            console.log('fieldType ' + fieldType + ' - ' + 'value ' + inputValue);
             this.state.cart.customer = Object.assign({}, this.state.cart.customer, {mobile: inputValue});
         }
         else if(fieldType==='name') {
+            console.log('fieldType ' + fieldType + ' - ' + 'value ' + inputValue);
             this.state.cart.customer = Object.assign({}, this.state.cart.customer, {name: inputValue});
         }
+        this.updateCart();
 
         console.log('Customer: ' + JSON.stringify(this.state.cart.customer));
     }
@@ -266,7 +308,7 @@ export class SalesReviewScreen extends Component
                     <FormInput onEndEditing={(event) => {
                         let text = event.nativeEvent.text;
                         this.updateCustomerInfo(text, 'mobile');
-                    }} placeholder='Enter mobile number' keyboardType='phone-pad' value={this.state.cart.customer.mobile}></FormInput>
+                    }} placeholder='Enter mobile number' keyboardType='numeric' value={this.state.cart.customer.mobile}></FormInput>
                     <FormValidationMessage>{this.state.errorMessage}</FormValidationMessage>
                     <FormLabel>Name</FormLabel>
                     <FormInput onEndEditing={(event) => {
@@ -343,54 +385,85 @@ export class SalesReviewScreen extends Component
         }
         //{`Technician: ${(srv.technician?srv.technician.name:'')} | Service time: ${srv.operation_time} min(s)`}
         //hideChevron={true}
-        
+
+        const CustomerView = (props) => {
+            const {mode} = props;
+
+            if(mode==='customer') { 
+                return (
+                    <View style = { styles.ChildView }>
+                        <TouchableOpacity activeOpacity = { 0.7 } 
+                                onPress = {()=> this.expand_collapse_Function(1) } 
+                                style = { styles.TouchableOpacityStyle }>
+                            <FAIcon name='female' size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
+                            <Text style = { styles.TouchableOpacityTitleText}>{this.state.buttonText}</Text>
+                            <FAIcon name={headIconName} size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
+                        </TouchableOpacity>
+                        <View style = {{ height: this.state.updatedHeight, overflow: 'hidden'}}>
+                            <CustomerInfo onLayout= {( value ) => this.getHeight( value.nativeEvent.layout.height )} />
+                        </View>
+                    </View>
+                )
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        const PriceView = (props) => {
+            const {mode} = props;
+            if(mode==='pricereview') {
+                return (
+                    <View style = { styles.ChildView }>
+                        <TouchableOpacity activeOpacity = { 0.7 } 
+                                onPress = {()=> this.expand_collapse_Function(2) } 
+                                style = { styles.TouchableOpacityStyle }>
+                            <FAIcon name='female' size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
+                            <Text style = { styles.TouchableOpacityTitleText}>{this.state.buttonTextVideo}</Text>
+                            <FAIcon name={headVideoIconName} size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
+                        </TouchableOpacity>
+                        <View style = {{ height: this.state.updatedVideoHeight, overflow: 'hidden' }}>
+                            <View>
+                                <TouchableOpacity activeOpacity={0.7} onPress={()=> this.manageCart()}
+                                    style={{backgroundColor:'#044075', height:40, alignItems:'flex-end'}}>
+                                    <Icon visible style={styles.menuIcon} name='md-cart' color='white' size={35} title='cart info'/>
+                                    <Text style={styles.marktext}>{this.state.cart.selectedServices.length}</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <ScrollView scrollsToTop={false} showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} 
+                                style={{flex:1, height: '90%'}} display={this.state.expandVideo?'flex':'none'} {...this.state._panResponder.panHandlers}
+                                onScrollEndDrag={()=> this.state.fScroll.setNativeProps({scrollEnabled: true})}>
+                                <ServiceList />
+                                <ListItem key='id1' title={'Total value : ' + this.state.totalValue} style={{textAlign: 'right', alignContent: 'flex-end', margin: 5, padding:4}} hideChevron={true}></ListItem>
+                            </ScrollView>
+                        </View>
+                    </View>
+                );
+            }
+            else {
+                return null;
+            }
+        }
+        //console.log('mode : ' + this.state.mode);
         return(
             <View>
-                <ScrollView showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} 
-                    style={{height: '90%'}}>
+                <ScrollView scrollsToTop={false} showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} 
+                    style={{height: '90%'}} ref={(e) => { this.state.fScroll = e }}>
                     <View style={ styles.MainContainer }>
-                        <View style = { styles.ChildView }>
-                            <TouchableOpacity activeOpacity = { 0.7 } 
-                                    onPress = {()=> this.expand_collapse_Function(1) } 
-                                    style = { styles.TouchableOpacityStyle }>
-                                <FAIcon name='female' size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
-                                <Text style = { styles.TouchableOpacityTitleText}>{this.state.buttonText}</Text>
-                                <FAIcon name={headIconName} size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
-                            </TouchableOpacity>
-                            <View style = {{ height: this.state.updatedHeight, overflow: 'hidden'}}>
-                                <CustomerInfo onLayout= {( value ) => this.getHeight( value.nativeEvent.layout.height )} />
-                            </View>
-                        </View>
-                        <View style = { styles.ChildView }>
-                            <TouchableOpacity activeOpacity = { 0.7 } 
-                                    onPress = {()=> this.expand_collapse_Function(2) } 
-                                    style = { styles.TouchableOpacityStyle }>
-                                <FAIcon name='female' size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
-                                <Text style = { styles.TouchableOpacityTitleText}>{this.state.buttonTextVideo}</Text>
-                                <FAIcon name={headVideoIconName} size={25} color='#900' style={styles.TouchableOpacityTitleIcon}/>
-                            </TouchableOpacity>
-                            <View style = {{ height: this.state.updatedVideoHeight, overflow: 'hidden' }}>
-                                <View>
-                                    <TouchableOpacity activeOpacity={0.7} onPress={()=> this.manageCart()}
-                                        style={{backgroundColor:'#044075', height:40, alignItems:'flex-end'}}>
-                                        <Icon visible style={styles.menuIcon} name='md-cart' color='white' size={35} title='cart info'/>
-                                        <Text style={styles.marktext}>{this.state.cart.selectedServices.length}</Text>
-                                    </TouchableOpacity>
-                                </View>
-                                <ScrollView showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} style={styles.ExpandSubViewInsideView} display={this.state.expandVideo?'flex':'none'}>
-                                    <ServiceList />
-                                </ScrollView>
-                                <ListItem key='id1' title={'Total value : ' + this.state.totalValue} style={{textAlign: 'right', alignContent: 'flex-end', margin: 5, padding:4}} hideChevron={true}></ListItem>
-                            </View>
-                        </View>
+                        <CustomerView mode={this.state.mode} />
+                        <PriceView mode={this.state.mode} />
                     </View>
                 </ScrollView>
                 <View style={{backgroundColor: '#0000ff', margin: 6, height: '10%'}}>
                     <TouchableOpacity 
                         onPress = {() => this.saveCart()}
-                        style={{height: '100%'}}>
+                        style={{height: '100%', alignItems: 'center', flex:1, flexDirection: 'row'}}>
+                        <Text style = {{color: '#ffffff', textAlign: 'left', textAlignVertical:'center', width: '40%', paddingLeft: 5, fontSize: 17, fontWeight: '700'}}>
+                            {`(${this.state.cart.selectedServices.length}) ₹ ${parseInt(this.state.totalValue).toFixed(2)}`}</Text>
                         <Text style = { styles.TouchableOpacityButtonTitleText}>
-                            <Icon name={iconName} size={25} color="#900" style={styles.TouchableOpacityButtonTitleIcon}/> Checkout</Text>
+                            <Icon name={iconName} size={25} color="#900" style={styles.TouchableOpacityButtonTitleIcon}/> {this.state.mode==='pricereview'? 'Customer Info': 'Checkout'}&nbsp;&nbsp;
+                            <Icon name='ios-arrow-forward' size={25} color="#900" style={styles.TouchableOpacityButtonTitleIcon}/>&nbsp;&nbsp;</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -445,7 +518,6 @@ const styles = StyleSheet.create(
         borderWidth: 1,
         borderColor: '#00BCD4',
         margin: 5,
-        borderWidth: 1,
         borderRadius: 2,
         borderColor: '#ddd',
         borderBottomWidth: 0,
@@ -479,12 +551,14 @@ const styles = StyleSheet.create(
     },
     TouchableOpacityButtonTitleText:
     {
-        textAlign: 'center',
+        textAlign: 'right',
         textAlignVertical: 'center',
         color: '#fff',
         fontSize: 20,
-        width: '90%',
-        height: 40
+        fontWeight: '700',
+        width: '60%',
+        height: '100%',
+        /*borderWidth: 1*/
     },    
     TouchableOpacityTitleIcon: {
         textAlign: 'right',

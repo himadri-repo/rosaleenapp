@@ -32,6 +32,62 @@ export class CartControl extends React.Component {
     constructor(props) {
         super(props);
         this.state = { cart: {selectedServices: [], customer:{} }};
+        // let storedCart = AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(value => {
+        //     let storedCart = JSON.parse(value);
+        //     //console.log('stored cart: ' + JSON.stringify(storedCart));
+        //     this.state.cart = Object.assign({}, {selectedServices:[], customer: {}}, storedCart, this.props.cart);
+        //     // console.log('stored cart: ' + JSON.stringify(this.state.cart));
+
+        //     this.props.actions.updateCartSuccess(this.state.cart);
+        // }).done();
+        this.loadUpdatedState();
+    }
+    //didFocus
+    focusListener = this.props.navigation.addListener('willFocus', payload => {
+        //this.loadUpdatedState();
+        //console.log('Focused -> ' + JSON.stringify(payload));
+        console.log('count: ' + this.state.cart.selectedServices.length);
+        console.log(JSON.stringify(this.state.cart.selectedServices));
+        
+        if(payload.state.params && payload.state.params.cart) {
+            this.state.cart = payload.state.params.cart;
+
+            this.props.actions.updateCartSuccess(this.state.cart);
+            console.log('cart -> ' + JSON.stringify(this.state.cart));
+        }
+    });
+
+    // componentDidMount = () => {
+    //     focusListener = this.navigation.addListener('focus', doStuff);
+    // }
+
+    componentWillUnmount = () => {
+        this.focusListener.remove();
+    }
+
+    // componentDidMount = () => {
+    //     let storedCart = AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(value => {
+    //         let storedCart = JSON.parse(value);
+    //         //console.log('stored cart: ' + JSON.stringify(storedCart));
+    //         this.state.cart = Object.assign({}, {selectedServices:[], customer: {}}, storedCart, this.props.cart);
+    //         // console.log('stored cart: ' + JSON.stringify(this.state.cart));
+
+    //         this.props.actions.updateCartSuccess(this.state.cart);
+    //     }).done();
+    // };
+
+    // componentWillReceiveProps(nextProps) {
+    //     let storedCart = AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(value => {
+    //         let storedCart = JSON.parse(value);
+    //         //console.log('stored cart: ' + JSON.stringify(storedCart));
+    //         this.state.cart = Object.assign({}, {selectedServices:[], customer: {}}, storedCart, this.props.cart);
+    //         // console.log('stored cart: ' + JSON.stringify(this.state.cart));
+
+    //         this.props.actions.updateCartSuccess(this.state.cart);
+    //     });
+    // }
+
+    loadUpdatedState = () => {
         let storedCart = AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(value => {
             let storedCart = JSON.parse(value);
             //console.log('stored cart: ' + JSON.stringify(storedCart));
@@ -39,9 +95,9 @@ export class CartControl extends React.Component {
             // console.log('stored cart: ' + JSON.stringify(this.state.cart));
 
             this.props.actions.updateCartSuccess(this.state.cart);
-        }).done();
+        });
     }
-
+    
     OnSalesReview = () => {
         //Alert.alert('Confirm', 'Do you want to proceed with billing?');
         //await AsyncStorage.setItem(CURRENT_CART_INFORMATION, JSON.stringify(this.state.cart));
@@ -65,20 +121,25 @@ export class CartControl extends React.Component {
             }, style:'cancel'},
         ], {cancelable: true});
     }
-    
+
     render() {
-        let cart = Object.assign({}, {selectedServices:[], customer: {}}, this.state.cart, this.props.cart);
-        // console.log('cart in CartControl: ' + JSON.stringify(cart));
-        // console.log('cart in props: ' + JSON.stringify(this.props.cart));
-        // console.log('cart in state: ' + JSON.stringify(this.state.cart));
+        //this.loadUpdatedState();
+        let cart = this.state.cart;
+        //let cart = Object.assign({}, {selectedServices:[], customer: {}}, this.state.cart);
+        //let cart = Object.assign({}, {selectedServices:[], customer: {}}, this.state.cart, this.props.cart);
+        //console.log('cart in CartControl: ' + JSON.stringify(cart));
+        //console.log('cart in props: ' + JSON.stringify(this.props.cart));
+        //console.log('cart in state: ' + JSON.stringify(this.state.cart));
         let platform = Platform.OS === 'ios' ? 'ios' : 'md';
         let iconName = cart.selectedServices.length>0? `${platform}-cart` : `${platform}-cart`;
-
-        if(cart.selectedServices.length>0) {
+        //cart.selectedServices.length
+        //console.log('count: ' + this.state.cart.selectedServices.length);
+        
+        if(this.state.cart.selectedServices.length>0) {
             return (
                 <TouchableOpacity activeOpacity={0.7} onPress={()=>this.OnSalesReview()}>
                     <Ionicons visible style={styles.menuIcon} name={iconName} color='white' size={35} title='cart info'/>
-                    <Text style={styles.marktext}>{cart.selectedServices.length}</Text>
+                    <Text style={styles.marktext}>{this.state.cart.selectedServices.length}</Text>
                 </TouchableOpacity>
             );
         }

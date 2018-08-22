@@ -10,16 +10,23 @@ export function updateCartSuccess(cart) {
 }
 
 const CURRENT_CART_INFORMATION = 'current_cart_information';
-export function updateCart(cart) {
+export function updateCart(cart, callback) {
     console.log('cart in actions top: ' + JSON.stringify(cart));
     return (dispatch => {
         dispatch(startAjaxCall());
         cartApi.saveCart(cart).then(savedCart=> {
-            dispatch(updateCartSuccess(savedCart));
+            //console.log('SAVED CART: ' + JSON.stringify(savedCart));
+            dispatch(updateCartSuccess(cart));
+            if(callback) {
+                callback(savedCart);
+            }
         })
         .catch(error => {
             console.log(error);
             dispatch(errorAjaxCall(error));
+            if(callback) {
+                callback(error);
+            }
         });
     });
 }

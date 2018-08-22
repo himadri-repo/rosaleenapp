@@ -113,6 +113,7 @@ export class ServiceCategoryScreen extends React.Component {
     };
 
     componentDidMount = () => {
+      console.log('I am loaded');
       AsyncStorage.getItem('credentials').then(result => {
         //console.log("credentials: " + JSON.parse(result));
         this.credentials = JSON.parse(result);
@@ -170,6 +171,7 @@ export class ServiceCategoryScreen extends React.Component {
                     }>
                     <ListView 
                         contentContainerStyle={styles.grid}
+                        enableEmptySections={true}
                         //dataSource={this.state.servicecategories}
                         dataSource={ds.cloneWithRows(this.props.serviceCategories)}
                         renderRow={(item, index) => this.renderGridItem(item, index)}

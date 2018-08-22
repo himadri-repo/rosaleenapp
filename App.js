@@ -286,7 +286,7 @@ const TabVab = createBottomTabNavigator({
       fontSize: 14,
     },
     style: {
-      backgroundColor: '#eff5fb' //'#eff0f1'
+      backgroundColor: '#cde4fb' //'#eff0f1'
     }
   },
   swipeEnabled: true,
