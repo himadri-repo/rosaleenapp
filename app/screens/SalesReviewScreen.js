@@ -1,7 +1,8 @@
 //jshint esversion:6
 //jshint ignore:start
 import React, { Component } from 'react';
-import { PanResponder, StyleSheet, View, Text, TextInput, TouchableOpacity, LayoutAnimation, UIManager, Platform, AsyncStorage, Alert, ScrollView, Picker, Dimensions } from 'react-native';
+import { PanResponder, StyleSheet, View, Text, TextInput, TouchableOpacity, LayoutAnimation, 
+    UIManager, Platform, AsyncStorage, Alert, ScrollView, Picker, Dimensions, ToastAndroid } from 'react-native';
 import {withNavigationFocus, StackActions, NavigationActions} from 'react-navigation';
 //redux specific imports
 import {connect} from 'react-redux';
@@ -39,13 +40,15 @@ export class SalesReviewScreen extends Component
            errorMessage: '',
            mode: 'pricereview'
         };
+
+        //this.userInput = {'mobile': '', 'name': ''};
     }
 
  
     componentDidMount() {
         AsyncStorage.getItem(CURRENT_CART_INFORMATION).then(cartObject => {
             this.setState({cart: JSON.parse(cartObject)});
-            this.state.cart = Object.assign({}, this.state.cart, {paymentMethod: 'Cash'});
+            this.state.cart = Object.assign({}, {paymentMethod: 'Cash'}, this.state.cart);
             this.calculateTotalValue();
         });
 
@@ -194,7 +197,8 @@ export class SalesReviewScreen extends Component
     }
 
     calculateValue(service) {
-        let serviceItem = this.state.cart.selectedServices.find(srv=> srv.id===service.id);
+        //let serviceItem = this.state.cart.selectedServices.find(srv=> srv.id===service.id);
+        let serviceItem = service;
 
         if(serviceItem) {
             let qty = parseInt(service.commercial.quantity);
@@ -220,7 +224,9 @@ export class SalesReviewScreen extends Component
 
         });
         this.setState({totalValue: totalValue});
+
         this.state.cart.totalValue = this.state.totalValue;
+        //this.state.cart.totalValue = totalValue;
         console.log('Total value : ' + totalValue);
         return totalValue;
     }
@@ -253,9 +259,11 @@ export class SalesReviewScreen extends Component
             Alert.alert('Confirmation', 'Are you sure to checkout/billing (Yes/No)?', [
                 {text:'Yes', onPress:()=> {
                     //call save cart here
-                    console.log('updateCart being called here');
-                    console.log('Cart to be inserted ' + JSON.stringify(this.state.cart));
+                    //console.log('Cart to be inserted ' + JSON.stringify(this.state.cart));
                     this.props.actions.updateCart(this.state.cart, result=> {
+                        //let resultData = JSON.stringify(result);
+                        ToastAndroid.showWithGravity('Order successfully placed', 
+                            ToastAndroid.LONG, ToastAndroid.BOTTOM);
                         console.log('result after API call: ' + JSON.stringify(result));
                         this.removeCart();
                     });
@@ -286,16 +294,23 @@ export class SalesReviewScreen extends Component
         if(fieldType==='mobile') {
             console.log('fieldType ' + fieldType + ' - ' + 'value ' + inputValue);
             this.state.cart.customer = Object.assign({}, this.state.cart.customer, {mobile: inputValue});
+            //this.setState({'mobile': inputValue});
+            //this.userInput = Object.assign({}, {'mobile':inputValue});
         }
         else if(fieldType==='name') {
             console.log('fieldType ' + fieldType + ' - ' + 'value ' + inputValue);
             this.state.cart.customer = Object.assign({}, this.state.cart.customer, {name: inputValue});
+            //this.setState({'name': inputValue});
+            //this.userInput = Object.assign({}, {'name':inputValue});
         }
         this.updateCart();
 
         console.log('Customer: ' + JSON.stringify(this.state.cart.customer));
+        //console.log('User Input: ' + JSON.stringify(this.userInput));
     }
- 
+    //value={this.state.cart.customer.mobile}
+    //value={this.state.cart.customer.name}
+    //onEndEditing
     render()
     {
         let platform = Platform.OS === 'ios' ? 'ios' : 'md';
@@ -304,21 +319,23 @@ export class SalesReviewScreen extends Component
         let headVideoIconName = this.state.expandVideo?'angle-double-up':'angle-double-down';
         const CustomerInfo = (props) => (
             <View style={styles.ExpandSubViewInsideView}>
-                <ScrollView showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false}>
+                <ScrollView keyboardShouldPersistTaps="always" showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false}>
                     <FormLabel>Mobile</FormLabel>
-                    <FormInput onEndEditing={(event) => {
-                        let text = event.nativeEvent.text;
-                        this.updateCustomerInfo(text, 'mobile');
-                    }} placeholder='Enter mobile number' keyboardType='numeric' value={this.state.cart.customer.mobile}></FormInput>
+                    <FormInput onChangeText={(txt) => {
+                        //let text = event.nativeEvent.text;
+                        this.updateCustomerInfo(txt, 'mobile');
+                    }} placeholder='Enter mobile number' keyboardType='numeric' returnKeyType="next">{this.state.cart.customer.mobile}</FormInput>
+
                     <FormValidationMessage>{this.state.errorMessage}</FormValidationMessage>
                     <FormLabel>Name</FormLabel>
-                    <FormInput onEndEditing={(event) => {
-                        let text = event.nativeEvent.text;
+                    <FormInput onChangeText={(txt) => {
+                        //let text = event.nativeEvent.text;
                         //srv.commercial.quantity=parseInt(text);
-                        this.updateCustomerInfo(text, 'name');
-                    }} placeholder='Enter name' keyboardType='default' value={this.state.cart.customer.name}></FormInput>
+                        this.updateCustomerInfo(txt, 'name');
+                    }} placeholder='Enter name' keyboardType='default' returnKeyType="next">{this.state.cart.customer.name}</FormInput>
+
                     <View style={styles.paymentContainer}>
-                        <FormLabel style={styles.paymentLebel}>Payment Mode</FormLabel>
+                        <FormLabel style={styles.paymentLebel}>Payment Mode {this.state.cart.paymentMethod}</FormLabel>
                         <Picker
                             selectedValue={this.state.cart.paymentMethod}
                             style={{ height: 50, width: 100, marginLeft: 50 }}
@@ -353,12 +370,19 @@ export class SalesReviewScreen extends Component
                                     keyboardType="numeric"
                                     autoCapitalize="none"
                                     autoCorrect={false}
-                                    defaultValue={((srv.commercial && srv.commercial.quantity)?srv.commercial.quantity.toString():'0')}
+                                    returnKeyType="next"
                                     onEndEditing={(event) => {   
                                         let text = event.nativeEvent.text;
                                         srv.commercial.quantity=parseInt(text);
                                         this.calculateValue(srv);
-                                    }}/>
+                                        // let qty = parseInt(srv.commercial.quantity);
+                                        // //serviceItem.commercial.quantity = qty;
+                                        // let rate = parseFloat(srv.commercial.rate);
+                                        // //serviceItem.commercial.rate = rate;
+                                        // srv.commercial.value = Math.round(qty * rate, 0);
+                            
+                                        //this.calculateValue(srv);
+                                    }}>{((srv.commercial && srv.commercial.quantity)?srv.commercial.quantity.toString():'0')}</TextInput>
                                 <TextInput
                                     style={{width: 75, marginRight: 7, textAlign: 'right'}}
                                     placeholder="Rate"
@@ -367,14 +391,20 @@ export class SalesReviewScreen extends Component
                                     keyboardType="numeric"
                                     autoCapitalize="none"
                                     autoCorrect={false}
-                                    defaultValue={((srv.commercial && srv.commercial.rate)?srv.commercial.rate.toString():'0')}
+                                    returnKeyType="next"
                                     onEndEditing={(event) => {
                                             let text = event.nativeEvent.text;
                                             srv.commercial.rate=parseFloat(text.trim());
                                             this.calculateValue(srv);
+                                            // let qty = parseInt(srv.commercial.quantity);
+                                            // //serviceItem.commercial.quantity = qty;
+                                            // let rate = parseFloat(srv.commercial.rate);
+                                            // //serviceItem.commercial.rate = rate;
+                                            // srv.commercial.value = Math.round(qty * rate, 0);
+                                            // console.log('Value : ' + srv.commercial.value);
                                         }
-                                    }/>
-                                <Text style={{width: 100, marginTop: 20}}>= {((srv.commercial && srv.commercial.value)?srv.commercial.value:0)}</Text>
+                                    }>{((srv.commercial && srv.commercial.rate)?srv.commercial.rate.toString():'0')}</TextInput>
+                                <Text style={{width: 100, marginTop: 20}}> = {((srv.commercial && srv.commercial.value)?srv.commercial.value:0)}</Text>
                             </View>
                         </View>}
                         avatar={{uri:srv.image}}
@@ -432,7 +462,8 @@ export class SalesReviewScreen extends Component
                                     <Text style={styles.marktext}>{this.state.cart.selectedServices.length}</Text>
                                 </TouchableOpacity>
                             </View>
-                            <ScrollView scrollsToTop={false} showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} 
+                            <ScrollView keyboardShouldPersistTaps="always" scrollsToTop={false} 
+                                showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} 
                                 style={{flex:1, height: '90%'}} display={this.state.expandVideo?'flex':'none'} {...this.state._panResponder.panHandlers}
                                 onScrollEndDrag={()=> this.state.fScroll.setNativeProps({scrollEnabled: true})}>
                                 <ServiceList />
@@ -449,7 +480,8 @@ export class SalesReviewScreen extends Component
         //console.log('mode : ' + this.state.mode);
         return(
             <View>
-                <ScrollView scrollsToTop={false} showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} 
+                <ScrollView keyboardShouldPersistTaps="always" scrollsToTop={false} 
+                    showsHorizontalScrollIndicator={false} showsVerticalScrollIndicator={false} 
                     style={{height: '90%'}} ref={(e) => { this.state.fScroll = e }}>
                     <View style={ styles.MainContainer }>
                         <CustomerView mode={this.state.mode} />
