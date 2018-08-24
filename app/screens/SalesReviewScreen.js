@@ -477,6 +477,24 @@ export class SalesReviewScreen extends Component
                 return null;
             }
         }
+
+        const BackButton = (props) => {
+            const {mode} = props;
+            if(mode==='pricereview') {
+                return null;
+            }
+            else {
+                return (<TouchableOpacity 
+                    onPress = {() => {
+                        this.setState({mode: 'pricereview'});
+                    }}
+                    style={{height: '100%', alignItems: 'center', flex:1, flexDirection: 'row'}}>
+                    <Text style = { styles.TouchableOpacityButtonTitleText}>
+                        <Icon name='ios-arrow-back' size={25} color="#900" style={styles.TouchableOpacityButtonTitleIcon}/> 
+                        {this.state.mode==='pricereview'? '': ' Back'}</Text>
+                </TouchableOpacity>);
+            }
+        }
         //console.log('mode : ' + this.state.mode);
         return(
             <View>
@@ -488,10 +506,11 @@ export class SalesReviewScreen extends Component
                         <PriceView mode={this.state.mode} />
                     </View>
                 </ScrollView>
-                <View style={{backgroundColor: '#0000ff', margin: 6, height: '10%'}}>
+                <View style={{flexDirection:'row', backgroundColor: '#0000ff', margin: 6, height: '10%'}}>
+                    <BackButton mode={this.state.mode} />
                     <TouchableOpacity 
                         onPress = {() => this.saveCart()}
-                        style={{height: '100%', alignItems: 'center', flex:1, flexDirection: 'row'}}>
+                        style={{height: '100%', alignItems: 'center', flex:3, flexDirection: 'row'}}>
                         <Text style = {{color: '#ffffff', textAlign: 'left', textAlignVertical:'center', width: '40%', paddingLeft: 5, fontSize: 17, fontWeight: '700'}}>
                             {`(${this.state.cart.selectedServices.length}) ₹ ${parseInt(this.state.totalValue).toFixed(2)}`}</Text>
                         <Text style = { styles.TouchableOpacityButtonTitleText}>
