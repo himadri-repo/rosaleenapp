@@ -113,7 +113,7 @@ export class ServiceCategoryScreen extends React.Component {
     };
 
     componentDidMount = () => {
-      console.log('I am loaded');
+      //console.log('I am loaded');
       AsyncStorage.getItem('credentials').then(result => {
         //console.log("credentials: " + JSON.parse(result));
         this.credentials = JSON.parse(result);

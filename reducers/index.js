@@ -7,14 +7,15 @@ import ajaxCallInProgress from './ajaxStatusReducer';
 import {authorize, currentUser} from './currentUserReducer';
 import general from './generalReducer';
 import cart from './cartReducer';
+import rates from './rateReducer';
 
 const rootReducer = combineReducers({
-    services, serviceCategories, users,
+    rates, services, serviceCategories, users,
     ajaxCallInProgress,
     credentials: authorize,
     currentUser: currentUser,
     navigator: general,
-    cart
+    cart, 
 });
 
 export default rootReducer;

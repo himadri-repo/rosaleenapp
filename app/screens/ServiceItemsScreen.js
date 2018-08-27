@@ -23,6 +23,7 @@ import {withNavigationFocus, StackActions, NavigationActions} from 'react-naviga
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {getServices} from '../../actions/serviceActions';
+import {getRates} from '../../actions/rateActions';
 import {updateCartSuccess} from '../../actions/cartManagementActions';
 
 const CURRENT_CART_INFORMATION = 'current_cart_information';
@@ -44,6 +45,7 @@ export class ServiceItemsScreen extends React.Component {
 
       this.state.category = '';
       this.state.categoryItem = {};
+      this.props.actions.getRates();
       this.state.technician = Object.assign({}, {technician: this.props.navigation.state.params.technician, 
         name: this.props.navigation.state.params.name});
       //this.state.technician = this.props.navigation.state.params.technician;
@@ -60,6 +62,8 @@ export class ServiceItemsScreen extends React.Component {
 
 
       this.state.services = Object.assign([{}], this.props.services);
+
+      //console.log(JSON.stringify(this.state));
 
       //console.log("\n\nServiceItems [props]: " + JSON.stringify(this.props));
 
@@ -83,7 +87,15 @@ export class ServiceItemsScreen extends React.Component {
 
     pressItem(service) { 
       let selectedServices = this.state.cart.selectedServices;
-      service = Object.assign({}, service, {technician: this.state.technician}, {commercial: {quantity: 0, rate: 0.0, value: 0.0}});
+      //this.state.rates = Object.assign([], this.state.rates, this.props.rates);
+      let rate = 0.0;
+      if(this.props.rates) {
+        let identifiedRate = this.props.rates.find(rate=> rate.sid===service.id && rate.location==='offsite');
+        if(identifiedRate)
+          rate = parseFloat(identifiedRate.rate);
+      }
+      service = Object.assign({}, service, {technician: this.state.technician}, {commercial: {quantity: 1, rate: rate, value: rate}});
+
       //console.log('updated Service with Technician : ' + JSON.stringify(service));
 
       let index = selectedServices.findIndex(srv=> srv.id===service.id);
@@ -223,7 +235,7 @@ export class ServiceItemsScreen extends React.Component {
 }
 //styles.Button
 function mapStateToProps(state, ownProps) {
-  //console.log('Cart [ServiceItemsScreen]-> ' + JSON.stringify(state.cart));
+  //console.log('Rates -> ' + JSON.stringify(state.rates));
 
   return {
       ...state
@@ -232,7 +244,7 @@ function mapStateToProps(state, ownProps) {
 
 function mapDispatchToProps(dispatch, ownProps) {
   return {
-      actions: bindActionCreators(Object.assign({}, {getServices}, {updateCartSuccess}), dispatch),
+      actions: bindActionCreators(Object.assign({}, {getServices}, {updateCartSuccess}, {getRates}), dispatch),
       //cartActions: bindActionCreators({updateCart}, dispatch),
   }
 }

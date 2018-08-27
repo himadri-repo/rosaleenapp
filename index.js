@@ -12,6 +12,7 @@ import configStore from './stores/configureStore.dev';
 import {getServices} from './actions/serviceActions';
 import {getServiceCategories} from './actions/serviceCategoryActions';
 import {getUsers} from './actions/userActions';
+import {getRates} from './actions/rateActions';
 import initialState from './stores/initialState';
 
 const store = configStore(initialState);
@@ -19,6 +20,7 @@ const store = configStore(initialState);
 store.dispatch(getUsers());
 store.dispatch(getServices());
 store.dispatch(getServiceCategories());
+store.dispatch(getRates());
 // setTimeout(() => {
 //     console.log("\n1." + JSON.stringify(store.getState()));
 //     store.dispatch(getServices());
