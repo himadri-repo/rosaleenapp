@@ -127,17 +127,9 @@ export class CartControl extends React.Component {
     }
 
     render() {
-        //this.loadUpdatedState();
         let cart = this.state.cart;
-        //let cart = Object.assign({}, {selectedServices:[], customer: {}}, this.state.cart);
-        //let cart = Object.assign({}, {selectedServices:[], customer: {}}, this.state.cart, this.props.cart);
-        //console.log('cart in CartControl: ' + JSON.stringify(cart));
-        //console.log('cart in props: ' + JSON.stringify(this.props.cart));
-        //console.log('cart in state: ' + JSON.stringify(this.state.cart));
         let platform = Platform.OS === 'ios' ? 'ios' : 'md';
         let iconName = cart.selectedServices.length>0? `${platform}-cart` : `${platform}-cart`;
-        //cart.selectedServices.length
-        //console.log('count: ' + this.state.cart.selectedServices.length);
         
         if(this.state.cart.selectedServices.length>0) {
             return (
@@ -152,9 +144,6 @@ export class CartControl extends React.Component {
         }
     }
 }
-// <Ionicons style={styles.menuIcon} name="ios-exit-outline" title="Logout" size={35} onPress={ () => this.logout() } />
-
-// <Ionicons style={styles.menuIcon} name={iconName} color='white' size={35} onPress={()=>Alert.alert('Confirm', 'You have some items in your cart')} title='cart info'/>;
 
 function mapStateToProps(state, ownProps) {
     return {

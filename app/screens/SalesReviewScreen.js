@@ -10,8 +10,9 @@ import {bindActionCreators} from 'redux';
 import {getUsers} from '../../actions/userActions'
 import Icon from 'react-native-vector-icons/Ionicons';
 import FAIcon from 'react-native-vector-icons/FontAwesome';
-import { Card, ListItem, FormLabel, FormInput, FormValidationMessage } from 'react-native-elements';
+import { Card, ListItem, FormLabel, FormInput, FormValidationMessage, Avatar } from 'react-native-elements';
 import CartControl from '../components/CartControl';
+import AddToCartControl from '../components/AddToCartControl';
 import {updateCart, updateCartSuccess} from '../../actions/cartManagementActions';
 
 const CURRENT_CART_INFORMATION = 'current_cart_information';
@@ -24,6 +25,7 @@ export class SalesReviewScreen extends Component
     constructor(props)
     {
         super(props);
+        this.OnCartItemChange = this.OnCartItemChange.bind(this);
         if( Platform.OS === 'android' )
         {
           UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -303,10 +305,17 @@ export class SalesReviewScreen extends Component
             //this.setState({'name': inputValue});
             //this.userInput = Object.assign({}, {'name':inputValue});
         }
-        this.updateCart();
+        //this.updateCart();
 
         console.log('Customer: ' + JSON.stringify(this.state.cart.customer));
         //console.log('User Input: ' + JSON.stringify(this.userInput));
+    }
+
+    OnCartItemChange(service) {
+        console.log('OnCartItem : ' + JSON.stringify(service));
+        this.calculateTotalValue();
+        //this.calculateValue(service);
+        return true;
     }
     //value={this.state.cart.customer.mobile}
     //value={this.state.cart.customer.name}
@@ -355,62 +364,23 @@ export class SalesReviewScreen extends Component
             //return this.props.navigation.state.params.cart.selectedServices.map(srv=> {
             return this.state.cart.selectedServices.map(srv=> {
                 return (
-                    <ListItem
-                        key={'key-' + srv.id}
-                        roundAvatar
-                        title={srv.name}
-                        subtitle={<View style={{marginLeft:7}}>
-                            <Text>Technician: {(srv.technician?srv.technician.name:'')} | Service time: {srv.operation_time} min(s)</Text>
-                            <View style={styles.listitemContainer}>
-                                <TextInput
-                                    style={{width: 75, marginRight: 7, textAlign: 'right'}}
-                                    placeholder="Quantity"
-                                    placeholderTextColor="rgba(44,44,44,0.4)"
-                                    /*returnKeyType="next"*/
-                                    keyboardType="numeric"
-                                    autoCapitalize="none"
-                                    autoCorrect={false}
-                                    returnKeyType="next"
-                                    onEndEditing={(event) => {   
-                                        let text = event.nativeEvent.text;
-                                        srv.commercial.quantity=parseInt(text);
-                                        this.calculateValue(srv);
-                                        // let qty = parseInt(srv.commercial.quantity);
-                                        // //serviceItem.commercial.quantity = qty;
-                                        // let rate = parseFloat(srv.commercial.rate);
-                                        // //serviceItem.commercial.rate = rate;
-                                        // srv.commercial.value = Math.round(qty * rate, 0);
-                            
-                                        //this.calculateValue(srv);
-                                    }}>{((srv.commercial && srv.commercial.quantity)?srv.commercial.quantity.toString():'0')}</TextInput>
-                                <TextInput
-                                    style={{width: 75, marginRight: 7, textAlign: 'right'}}
-                                    placeholder="Rate"
-                                    placeholderTextColor="rgba(44,44,44,0.4)"
-                                    /*returnKeyType="next"*/
-                                    keyboardType="numeric"
-                                    autoCapitalize="none"
-                                    autoCorrect={false}
-                                    returnKeyType="next"
-                                    onEndEditing={(event) => {
-                                            let text = event.nativeEvent.text;
-                                            srv.commercial.rate=parseFloat(text.trim());
-                                            this.calculateValue(srv);
-                                            // let qty = parseInt(srv.commercial.quantity);
-                                            // //serviceItem.commercial.quantity = qty;
-                                            // let rate = parseFloat(srv.commercial.rate);
-                                            // //serviceItem.commercial.rate = rate;
-                                            // srv.commercial.value = Math.round(qty * rate, 0);
-                                            // console.log('Value : ' + srv.commercial.value);
-                                        }
-                                    }>{((srv.commercial && srv.commercial.rate)?srv.commercial.rate.toString():'0')}</TextInput>
-                                <Text style={{width: 100, marginTop: 20}}> = {((srv.commercial && srv.commercial.value)?srv.commercial.value:0)}</Text>
-                            </View>
-                        </View>}
-                        avatar={{uri:srv.image}}
-                        rightIcon={<FAIcon name='trash-o' size={35} color='#ff0000' style={styles.deleteIcon} onPress={()=> this.deleteCartItem(srv)}/>}
-                        style={styles.listitem}>
-                    </ListItem>
+                    <View style={{height: 100, margin: 5, padding: 5, backgroundColor: '#ffffff', flex:1, flexDirection: 'row', 
+                            alignItems:"center", alignContent: 'center', justifyContent: 'center', shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.8, shadowRadius: 4, elevation: 5, borderRadius: 8}} key={'key-' + srv.id}>
+                        <View style={{flex: 1, alignItems: 'center', alignContent: 'center', justifyContent: 'center',}}>
+                            <Avatar size="medium" source={{uri:srv.image}} activeOpacity={0.7} onPress={() => console.log('Avatar clicked!')} />
+                        </View>
+                        <View style={{flex: 5}}>
+                            <Text style={{color: '#F89825', fontFamily:'Open Sans', fontSize: 22, fontWeight: '400', marginLeft: 5}}>{srv.name}</Text>
+                            <View style={{marginLeft:7}}>
+                                <Text style={{margin: 5, fontSize: 15}}>Technician: {(srv.technician?srv.technician.name:'')}</Text>
+                                <Icon name='md-alarm' size={22} color='#F89825' style={{alignContent: 'center', alignItems: 'center', justifyContent: 'center'}}><Text style={{margin: 8, fontSize: 15}}>  {srv.operation_time} min(s)</Text></Icon>
+                            </View>                            
+                        </View>
+                        <View style={{}}>
+                            <AddToCartControl ServiceItem={srv} OnChange={this.OnCartItemChange}/>
+                        </View>
+                    </View>
                 );
             });
         }
@@ -467,7 +437,6 @@ export class SalesReviewScreen extends Component
                                 style={{flex:1, height: '90%'}} display={this.state.expandVideo?'flex':'none'} {...this.state._panResponder.panHandlers}
                                 onScrollEndDrag={()=> this.state.fScroll.setNativeProps({scrollEnabled: true})}>
                                 <ServiceList />
-                                <ListItem key='id1' title={'Total value : ' + this.state.totalValue} style={{textAlign: 'right', alignContent: 'flex-end', margin: 5, padding:4}} hideChevron={true}></ListItem>
                             </ScrollView>
                         </View>
                     </View>
