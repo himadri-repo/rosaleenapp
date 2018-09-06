@@ -13,6 +13,7 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import { Card, ListItem, FormLabel, FormInput, FormValidationMessage, Avatar } from 'react-native-elements';
 import CartControl from '../components/CartControl';
 import AddToCartControl from '../components/AddToCartControl';
+import SummaryControl from '../components/SummaryControl';
 import {updateCart, updateCartSuccess} from '../../actions/cartManagementActions';
 
 const CURRENT_CART_INFORMATION = 'current_cart_information';
@@ -20,12 +21,14 @@ const CUSTOMERSECTION_HEIGHT = 300;
 
 const window = Dimensions.get('screen');
 
-export class SalesReviewScreen extends Component
+export class SalesReviewScreen extends React.PureComponent
 {
     constructor(props)
     {
         super(props);
         this.OnCartItemChange = this.OnCartItemChange.bind(this);
+        this.saveCart = this.saveCart.bind(this);
+        //this.refs.summaryControl.OnManageCart = this.refs.summaryControl.OnManageCart.bind(this);
         if( Platform.OS === 'android' )
         {
           UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -40,7 +43,8 @@ export class SalesReviewScreen extends Component
            buttonTextVideo: 'Selected service(s)',
            cart: {selectedServices:[], customer: {}, paymentMethod:'Cash'},
            errorMessage: '',
-           mode: 'pricereview'
+           mode: 'pricereview',
+           totalValue: 0
         };
 
         //this.userInput = {'mobile': '', 'name': ''};
@@ -215,20 +219,28 @@ export class SalesReviewScreen extends Component
         }
         this.calculateTotalValue();
 
-        console.log('cart: ' + JSON.stringify(this.state.cart));
+        //console.log('cart: ' + JSON.stringify(this.state.cart));
     }
 
     calculateTotalValue() {
         let totalValue = 0;
         this.state.cart.selectedServices.map(srv=> {
+            //console.log('id : ' + srv.id + ' - ' + srv.commercial.quantity);
             totalValue += Math.round(parseInt(srv.commercial.quantity) * parseFloat(srv.commercial.rate),0);
-            //this.setState({totalValue: totalValue});
-
         });
-        this.setState({totalValue: totalValue});
+        //this is correct code
+        //this.setState({totalValue: totalValue});
 
-        this.state.cart.totalValue = this.state.totalValue;
+        this.state.cart.totalValue = totalValue;
         //this.state.cart.totalValue = totalValue;
+        if(this.refs.summaryControl && this.refs.summaryControl.updateTotalValueToState) {
+            this.refs.summaryControl.updateTotalValueToState(totalValue);
+        }
+
+        if(this.refs.summaryControl && this.refs.summaryControl.serviceCount) {
+            this.refs.summaryControl.serviceCount(this.state.cart.selectedServices);
+        }
+        
         console.log('Total value : ' + totalValue);
         return totalValue;
     }
@@ -314,8 +326,26 @@ export class SalesReviewScreen extends Component
     OnCartItemChange(service) {
         console.log('OnCartItem : ' + JSON.stringify(service));
         this.calculateTotalValue();
+
+        //Call the client control to update the content
+        //console.log('Summary Control: ' + JSON.stringify(this.refs.summaryControl));
+        //this.refs.summaryControl.OnManageCart(this.state.cart.selectedServices);
+
+        if(this.refs.summaryControl.OnManageCart) {
+            console.log('Valid control');
+            this.refs.summaryControl.OnManageCart(this.state.cart.selectedServices);
+        }
         //this.calculateValue(service);
         return true;
+    }
+
+    serviceCount(services) {
+        let srvCount = 0;
+        services.forEach((srv, idx) => {
+            srvCount += ((srv && srv.commercial.quantity>0)?1:0);
+        });
+
+        return srvCount;
     }
     //value={this.state.cart.customer.mobile}
     //value={this.state.cart.customer.name}
@@ -371,13 +401,14 @@ export class SalesReviewScreen extends Component
                             <Avatar size="medium" source={{uri:srv.image}} activeOpacity={0.7} onPress={() => console.log('Avatar clicked!')} />
                         </View>
                         <View style={{flex: 5}}>
-                            <Text style={{color: '#F89825', fontFamily:'Open Sans', fontSize: 22, fontWeight: '400', marginLeft: 5}}>{srv.name}</Text>
+                            <Text style={{color: '#F89825', fontFamily:'Open Sans', fontSize: 20, fontWeight: '400', marginLeft: 5}}>{srv.name}</Text>
                             <View style={{marginLeft:7}}>
                                 <Text style={{margin: 5, fontSize: 15}}>Technician: {(srv.technician?srv.technician.name:'')}</Text>
                                 <Icon name='md-alarm' size={22} color='#F89825' style={{alignContent: 'center', alignItems: 'center', justifyContent: 'center'}}><Text style={{margin: 8, fontSize: 15}}>  {srv.operation_time} min(s)</Text></Icon>
                             </View>                            
                         </View>
                         <View style={{}}>
+                            <Text style={{color: '#F89825', fontFamily:'Open Sans', fontSize: 18, fontWeight: '600', marginLeft: 5}}>₹ {srv.commercial.rate.toFixed(2)}</Text>
                             <AddToCartControl ServiceItem={srv} OnChange={this.OnCartItemChange}/>
                         </View>
                     </View>
@@ -464,6 +495,23 @@ export class SalesReviewScreen extends Component
                 </TouchableOpacity>);
             }
         }
+
+        const SummarySection = (props) => {
+            return (
+                <View style={{flexDirection:'row', backgroundColor: '#0000ff', margin: 6, height: '10%'}}>
+                    <BackButton mode={this.state.mode} />
+                    <TouchableOpacity 
+                        onPress = {() => this.saveCart()}
+                        style={{height: '100%', alignItems: 'center', flex:3, flexDirection: 'row'}}>
+                        <Text style = {{color: '#ffffff', textAlign: 'left', textAlignVertical:'center', width: '40%', paddingLeft: 5, fontSize: 17, fontWeight: '700'}}>
+                            {`(${this.serviceCount(this.state.cart.selectedServices)}) ₹ ${parseInt(this.state.totalValue).toFixed(2)}`}</Text>
+                        <Text style = { styles.TouchableOpacityButtonTitleText}>
+                            <Icon name={iconName} size={25} color="#900" style={styles.TouchableOpacityButtonTitleIcon}/> {this.state.mode==='pricereview'? 'Customer Info': 'Checkout'}&nbsp;&nbsp;
+                            <Icon name='ios-arrow-forward' size={25} color="#900" style={styles.TouchableOpacityButtonTitleIcon}/>&nbsp;&nbsp;</Text>
+                    </TouchableOpacity>
+                </View>
+            );
+        }
         //console.log('mode : ' + this.state.mode);
         return(
             <View>
@@ -475,33 +523,12 @@ export class SalesReviewScreen extends Component
                         <PriceView mode={this.state.mode} />
                     </View>
                 </ScrollView>
-                <View style={{flexDirection:'row', backgroundColor: '#0000ff', margin: 6, height: '10%'}}>
-                    <BackButton mode={this.state.mode} />
-                    <TouchableOpacity 
-                        onPress = {() => this.saveCart()}
-                        style={{height: '100%', alignItems: 'center', flex:3, flexDirection: 'row'}}>
-                        <Text style = {{color: '#ffffff', textAlign: 'left', textAlignVertical:'center', width: '40%', paddingLeft: 5, fontSize: 17, fontWeight: '700'}}>
-                            {`(${this.state.cart.selectedServices.length}) ₹ ${parseInt(this.state.totalValue).toFixed(2)}`}</Text>
-                        <Text style = { styles.TouchableOpacityButtonTitleText}>
-                            <Icon name={iconName} size={25} color="#900" style={styles.TouchableOpacityButtonTitleIcon}/> {this.state.mode==='pricereview'? 'Customer Info': 'Checkout'}&nbsp;&nbsp;
-                            <Icon name='ios-arrow-forward' size={25} color="#900" style={styles.TouchableOpacityButtonTitleIcon}/>&nbsp;&nbsp;</Text>
-                    </TouchableOpacity>
-                </View>
+                <SummaryControl mode={this.state.mode} SaveCart={this.saveCart} Services={this.state.cart.selectedServices} 
+                        OnBackClick={(mode)=> this.setState(mode)} ref="summaryControl" TotalValue={this.state.totalValue}/>
             </View>
         );
     }
 }
-//, position: 'absolute', width: '97%', marginTop: window.height-220
-//activeOpacity={0.7} style={styles.ButtonContent} 
-// <Card containerStyle={{padding: 0, width: '82%', borderWidth: 1}}>
-// <ServiceList />
-// </Card>
-
-// <View style={styles.ExpandSubViewInsideView}>
-// <ServiceList />
-// </View>
-
-
 
 function mapStateToProps(state, ownProps) {
     return {
