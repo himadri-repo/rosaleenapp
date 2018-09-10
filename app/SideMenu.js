@@ -10,7 +10,7 @@ import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import styles from './SideMenu.style';
 import {withNavigationFocus, NavigationActions} from 'react-navigation';
-import {ScrollView, View, Image, StatusBar} from 'react-native';
+import {ScrollView, Image, ImageBackground, View, StatusBar} from 'react-native';
 import { Container, Content, Text, List, ListItem } from "native-base";
 
 //redux specific imports
@@ -18,7 +18,12 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {getUsers} from '../actions/userActions';
 
-const routes = ["Home", "Chat", "Profile"];
+const routes = [
+  {name: 'Home', route: 'HomeAfterLogin'},
+  {name: 'Services', route: 'ServiceCatTabLanding'},
+  {name: 'Offers', route: 'Offers'},
+  {name: 'Search', route: 'Search'},
+];
 
 class SideMenu extends Component {
   navigateToScreen = (route) => () => {
@@ -32,7 +37,7 @@ class SideMenu extends Component {
     return (
       <Container>
         <Content>
-          <Image
+          <ImageBackground
             source={{
               uri: "https://cdn-images-1.medium.com/max/2000/1*l3wujEgEKOecwVzf_dqVrQ.jpeg"
             }}
@@ -42,15 +47,23 @@ class SideMenu extends Component {
               justifyContent: "center",
               alignItems: "center"
             }}>
-          </Image>
+            <Image
+              style={{ height: 80, width: 80, borderWidth: 1, borderColor: '#F44336', borderRadius: 40 }}
+              source={{
+                uri: "https://media.licdn.com/dms/image/C5603AQEUrvvwkf1jOg/profile-displayphoto-shrink_200_200/0?e=1542240000&v=beta&t=Ry1WqHqSdS2UzwYTWb4L5C_jArm8RnIjmxDWn-bVwAw"
+              }}
+            />
+          </ImageBackground>
           <List
             dataArray={routes}
             renderRow={data => {
               return (
                 <ListItem
                   button
-                  onPress={() => this.props.navigation.navigate(data)}>
-                  <Text>{data}</Text>
+                  onPress={() => this.props.navigation.navigate(data.route)}
+                  style={{borderBottomColor: '#e1e1e1', borderBottomWidth: 1, marginLeft: 0, paddingLeft: 0}}
+                  >
+                  <Text style={{marginLeft: 8}}>{data.name}</Text>
                 </ListItem>
               );
             }}
