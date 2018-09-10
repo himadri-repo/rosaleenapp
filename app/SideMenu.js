@@ -9,8 +9,16 @@
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import styles from './SideMenu.style';
-import {NavigationActions} from 'react-navigation';
-import {ScrollView, Text, View} from 'react-native';
+import {withNavigationFocus, NavigationActions} from 'react-navigation';
+import {ScrollView, View, Image, StatusBar} from 'react-native';
+import { Container, Content, Text, List, ListItem } from "native-base";
+
+//redux specific imports
+import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import {getUsers} from '../actions/userActions';
+
+const routes = ["Home", "Chat", "Profile"];
 
 class SideMenu extends Component {
   navigateToScreen = (route) => () => {
@@ -22,36 +30,33 @@ class SideMenu extends Component {
 
   render () {
     return (
-      <View style={styles.container}>
-        <ScrollView>
-          <View>
-            <Text style={styles.sectionHeadingStyle}>
-              Section 1
-            </Text>
-            <View style={styles.navSectionStyle}>
-              <Text style={styles.navItemStyle} onPress={this.navigateToScreen('Profile')}>
-              Profile
-              </Text>
-            </View>
-          </View>
-          <View>
-            <Text style={styles.sectionHeadingStyle}>
-              Section 2
-            </Text>
-            <View style={styles.navSectionStyle}>
-              <Text style={styles.navItemStyle} onPress={this.navigateToScreen('Details')}>
-                Details
-              </Text>
-              <Text style={styles.navItemStyle} onPress={this.navigateToScreen('Home3')}>
-                Page3
-              </Text>
-            </View>
-          </View>
-        </ScrollView>
-        <View style={styles.footerContainer}>
-          <Text>This is my fixed footer</Text>
-        </View>
-      </View>
+      <Container>
+        <Content>
+          <Image
+            source={{
+              uri: "https://cdn-images-1.medium.com/max/2000/1*l3wujEgEKOecwVzf_dqVrQ.jpeg"
+            }}
+            style={{
+              height: 120,
+              alignSelf: "stretch",
+              justifyContent: "center",
+              alignItems: "center"
+            }}>
+          </Image>
+          <List
+            dataArray={routes}
+            renderRow={data => {
+              return (
+                <ListItem
+                  button
+                  onPress={() => this.props.navigation.navigate(data)}>
+                  <Text>{data}</Text>
+                </ListItem>
+              );
+            }}
+          />
+        </Content>
+      </Container>
     );
   }
 }
@@ -60,5 +65,19 @@ SideMenu.propTypes = {
   navigation: PropTypes.object
 };
 
-export default SideMenu;
+function mapStateToProps(state, ownProps) {
+  //console.log('cart [Services] : ' + JSON.stringify(state.cart));
+  return {
+      ...state
+  };
+}
+
+function mapDispatchToProps(dispatch, ownProps) {
+  return {
+      actions: bindActionCreators({getUsers}, dispatch)
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(withNavigationFocus(SideMenu));
+//export default SideMenu;
 //jshint ignore:end
