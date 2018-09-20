@@ -20,15 +20,19 @@ import {
 import {ListItem} from 'react-native-elements';
 import Icon from 'react-native-vector-icons'
 import { YellowBox } from 'react-native'
+import {withNavigationFocus} from 'react-navigation';
 //redux
 import {connect} from 'react-redux';
-//import {bindActionCreators} from 'redux';
+import {bindActionCreators} from 'redux';
+
+import {getCustomers, getCustomersByQuery} from '../../actions/customerActions';
+import {getInvoices, getInvoicesByQuery} from '../../actions/invoiceActions';
 
 YellowBox.ignoreWarnings(['Warning: isMounted(...) is deprecated'])
 //import Router from '../routes';
 //import {AppRegistry} from 'react-native';
 
-export class LandingScreen extends React.Component {
+export class LandingScreen extends React.PureComponent {
     constructor(props) {
         super(props);
         this.credentials = this.props.navigation.state.params.credentials;
@@ -39,7 +43,8 @@ export class LandingScreen extends React.Component {
 
         //console.log("Credentials : " + JSON.stringify(this.credentials));
         //console.log("Profile : " + JSON.stringify(this.profile));
-
+        //this.props.actions.getInvoices();
+        this.props.actions.getCustomers();
 
         AsyncStorage.setItem('credentials', JSON.stringify(this.credentials)).then(result => {
           //console.log(`[credentials] Value saved to state ${result}`);
@@ -54,7 +59,26 @@ export class LandingScreen extends React.Component {
         //this.itemClicked = this.itemClicked.bind(this);
     }
 
+    componentDidMount() {
+      console.log(JSON.stringify(this.props.customers));
+      this.state.customers = Object.assign([{}], this.props.customers);
+    }
+
     render () {
+        const CustList = (props) => {
+          if(this.props.customers && this.props.customers.length>0) {
+            console.log('true');
+            return this.props.customers.map((cust, idx) => {
+              return (<Text key={idx}>{cust.name}</Text>);
+            });
+          }
+          else
+          {
+            console.log('false');
+            return null;
+          }
+        };
+
         return (
             <View style={styles.rootcontainer}>
                 <StatusBar
@@ -66,11 +90,12 @@ export class LandingScreen extends React.Component {
                 <View style={styles.container}>
                     <Text>I am landing screen ({this.props.currentUser.username}) - {this.props.currentUser.type}</Text>
                 </View>
+                <CustList />
             </View>
         );
     }
 }
-
+// <Text>{Object.prototype.toString.apply(this.props.customers)}</Text>
 
 function mapStateToProps(state, ownProps) {
   //console.log("mapState2Props : " + (state.currentUser) + " - " + state.currentUser.length);
@@ -80,13 +105,13 @@ function mapStateToProps(state, ownProps) {
   };
 }
 
-// function mapDispatchToProps(dispatch, ownProps) {
-//     return {
-//         someactions: bindActionCreators(userActions, dispatch)
-//     }
-// }
+function mapDispatchToProps(dispatch, ownProps) {
+  return {
+      actions: bindActionCreators(Object.assign({}, {getCustomers}, {getCustomersByQuery}, {getInvoices}, {getInvoicesByQuery}), dispatch)
+  }
+}
 
-export default connect(mapStateToProps)(LandingScreen);
+export default connect(mapStateToProps, mapDispatchToProps)(withNavigationFocus(LandingScreen));
 
 const styles = StyleSheet.create({
     container: {
