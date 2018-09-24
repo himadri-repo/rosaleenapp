@@ -2,7 +2,7 @@
 import * as types from '../actions/actionTypes';
 import initialState from '../stores/initialState';
 
-export function currentUser(state=initialState, action) {
+export function currentUser(state=initialState, action={}) {
     switch (action.type) {
         case types.GET_CURRENTUSER_SUCCESS:
             //console.log("\nCurrent state [USER_AUTHORIZATION_SUCCESS] : " + JSON.stringify(state) + "\n");
@@ -14,7 +14,7 @@ export function currentUser(state=initialState, action) {
     }
 }
 
-export function authorize(state=initialState, action) {
+export function authorize(state=initialState, action={}) {
     switch (action.type) {
         case types.USER_AUTHORIZATION_SUCCESS:
             //console.log("\nCurrent state [USER_AUTHORIZATION_SUCCESS] : " + JSON.stringify(state) + "\n");

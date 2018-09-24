@@ -37,7 +37,7 @@ export class Login extends React.Component {
     onSuccess(credentials) {
         //alert('success');
         auth0.auth
-            .userInfo({ token: credentials.accessToken })
+            .userInfo({ token: credentials.credentials.accessToken })
             .then(profile => {
                 this.setState({loading: false});
                 this.props.onAuth(credentials, profile);
@@ -55,7 +55,7 @@ export class Login extends React.Component {
     }
 
     realmLogin(username, password) {
-        //this.alert("Information","Logging in ...");
+        console.log("username: " + username + ' - password: ' + password);
         this.setState({loading: true});
         auth0.auth
             .passwordRealm({
@@ -66,9 +66,11 @@ export class Login extends React.Component {
                 audience: 'https://' + credentials.domain + '/userinfo'
             })
             .then(credentials => {
-                this.onSuccess(credentials);
+                console.log(JSON.stringify(credentials));
+                this.onSuccess({credentials, username, password});
             })
             .catch(error => {
+                console.log(error);
                 this.setState({loading: false});
                 this.alert('Error', error.json.error_description)
             });
@@ -196,6 +198,7 @@ const styles = StyleSheet.create({
     },
     socialContainer: {
         flex: 2,
+        display: 'none',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',

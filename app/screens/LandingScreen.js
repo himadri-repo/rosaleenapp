@@ -44,7 +44,13 @@ export class LandingScreen extends React.PureComponent {
         //console.log("Credentials : " + JSON.stringify(this.credentials));
         //console.log("Profile : " + JSON.stringify(this.profile));
         //this.props.actions.getInvoices();
-        this.props.actions.getCustomers();
+        try
+        {
+          this.props.actions.getCustomers();
+        }
+        catch(e) {
+          console.log(e);
+        }
 
         AsyncStorage.setItem('credentials', JSON.stringify(this.credentials)).then(result => {
           //console.log(`[credentials] Value saved to state ${result}`);

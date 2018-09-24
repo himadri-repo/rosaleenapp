@@ -11,6 +11,8 @@ import {
   StatusBar,
   Alert,
   AsyncStorage,
+  NetInfo,
+  Dimensions,
   BackHandler
 } from 'react-native';
 import LoginModal from '../modals/LoginModal';
@@ -33,15 +35,17 @@ YellowBox.ignoreWarnings(['Warning: isMounted(...) is deprecated']);
 var credentials = require('../AuthCredential');
 const auth0 = new Auth0(credentials);
 
+const { width } = Dimensions.get('window');
 //const store = configStore();
 
 const ACCESS_TOKEN = "accessToken";
+const ACCESS_PROFILE = "accessProfile";
 
 export class HomeScreen extends React.Component {
     constructor(props) {
       super(props);
       this.isMounted = false;
-      this.state = { modalVisible: false, token: '', loading: false };
+      this.state = { modalVisible: false, token: '', loading: false, isConnected: true };
       this.onAuth = this.onAuth.bind(this)
     }
   
@@ -51,6 +55,12 @@ export class HomeScreen extends React.Component {
       header: null
     };
 
+    handleConnectivityChange = (isConnected) => {
+      this.setState({ isConnected });
+
+      console.log("Is Connected: " + isConnected);
+    }
+
     componentDidMount = () => {
       this.isMounted = true;
 
@@ -59,14 +69,22 @@ export class HomeScreen extends React.Component {
 
       //   console.log("STATE in Subscribe: " + JSON.stringify(stateObject));
       // });
+      NetInfo.isConnected.fetch().then(isConnected => {
+        console.log('First, is ' + (isConnected ? 'online' : 'offline'));
+        this.setState({ isConnected });
+      });      
+
+      NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
+
       try
       {
         let credential = this.getToken().then(cred => {
-          //console.log('Token in DidMount: ' + JSON.stringify(cred));
-          if(cred && cred.accessToken) {
-            //console.log('Token in Auto Login: ' + JSON.stringify(cred.accessToken));
+          console.log('Token in DidMount: ' + JSON.stringify(cred));
+          if(cred && cred.credentials && cred.credentials.accessToken) {
+            //console.log('Cred in Auto Login: ' + JSON.stringify(cred.credentials));
             this.setState({loading: true});
-            this.authenticateUser(cred);
+            //this.authenticateUser(cred);
+            this.realmLogin(cred);
           }
         });
       }
@@ -79,12 +97,48 @@ export class HomeScreen extends React.Component {
       this.isMounted = false;
     }
 
+    realmLogin(credInfo) {
+      let username = credInfo.username;
+      let password = credInfo.password;
+
+      //this.alert("Information","Logging in ...");
+      //console.log("Logging in ... " + username + ' - ' + password);
+      this.setState({loading: true});
+      auth0.auth
+        .passwordRealm({
+            username: username,
+            password: password,
+            realm: 'Username-Password-Authentication',
+            scope: 'openid profile email',
+            audience: 'https://' + credentials.domain + '/userinfo'
+        })
+        .then(credentials => {
+            this.authenticateUser({credentials, username, password});
+        })
+        .catch(error => {
+            this.setState({loading: false});
+            if(error && error.json)
+              this.alert('Error', error.json.error_description);
+            else {
+              console.log('Error: ' + error.toString());
+              if(error.toString().indexOf('Network request failed')>-1 && 
+                credInfo.credentials.accessToken) 
+              {
+                console.log('Force redirecting: ');
+                this.props.actions.authorize(credInfo, this.state.profile);
+                this.setState({loading: false});
+                this.props.navigation.navigate('TabLanding', {credentials: credInfo, profile: this.state.profile});
+              }
+            }
+        });
+    }
+
     authenticateUser(credential) {
       try
       {
-        //console.log('Token in AuthenticateUser: ' + credential.accessToken);
+        //console.log('Pre AuthenticateUser: ' + JSON.stringify(credential));
         auth0.auth
-        .userInfo({ token: credential.accessToken })
+        .userInfo({ token: credential.credentials.accessToken })
         .then(profile => {
             //this.props.onAuth(credentials, profile);
             this.props.actions.authorize(credential, profile);
@@ -103,9 +157,9 @@ export class HomeScreen extends React.Component {
       }
     }
 
-    async storeAccessToken(credential) {
+    async storeAccessToken(credential, profile) {
       try {
-        await AsyncStorage.setItem(ACCESS_TOKEN, JSON.stringify(credential));
+        await AsyncStorage.setItem(ACCESS_TOKEN, JSON.stringify({credential, profile}));
         let token = await this.getToken();
         //console.log("Token logged: " + token.toString());
       }
@@ -116,12 +170,33 @@ export class HomeScreen extends React.Component {
 
     async getToken() {
       try {
-        let credential = await AsyncStorage.getItem(ACCESS_TOKEN).then(cred => JSON.parse(cred));
+        let credential = await AsyncStorage.getItem(ACCESS_TOKEN).then(cred => {
+          console.log(cred);
+          cred = JSON.parse(cred);
+          if(cred.credential && cred.profile)
+            this.setState({credential: cred.credential, profile: cred.profile});
 
-        // if(credential)
-        //   console.log("Token logged (getToken): " + credential.accessToken);
-
+          return cred.credential;
+        });
         return credential;
+      }
+      catch(error) {
+        console.log(error);
+      }
+
+      return null;
+    }
+
+    async getProfile() {
+      try {
+        let profile = await AsyncStorage.getItem(ACCESS_TOKEN).then(cred => {
+          cred = JSON.parse(cred);
+          if(cred.credential && cred.profile)
+            this.setState({credential: cred.credential, profile: cred.profile});
+          
+          return cred.profile;
+        });
+        return profile;
       }
       catch(error) {
         console.log(error);
@@ -136,12 +211,12 @@ export class HomeScreen extends React.Component {
 
       try
       {
-        //console.log("credentials :: " + JSON.stringify(credentials));
+        console.log("credentials :: " + JSON.stringify(credentials));
         //console.log(JSON.stringify(this.props.someactions.authorize));
         //console.log("Home Action Functions: " + JSON.stringify(this.props.actions.authorize));
         AsyncStorage.removeItem(ACCESS_TOKEN).done();
         this.props.actions.authorize(credentials, profile);
-        this.storeAccessToken(credentials).then(value => {
+        this.storeAccessToken(credentials, profile).then(value => {
           //console.log('data stored locally : ' + JSON.stringify(credentials));
           this.props.navigation.navigate('TabLanding', {credentials: credentials, profile: profile});
         });
@@ -166,6 +241,18 @@ export class HomeScreen extends React.Component {
     render() {
       //const { navigate } = this.props.navigation;
       //generalActions.setNavigatorSuccess(navigate);
+      const MiniOfflineSign = (props) => {
+        if(!this.state.isConnected) {
+          return (
+            <View style={styles.offlineContainer}>
+              <Text style={styles.offlineText}>No Internet Connection</Text>
+            </View>
+          );
+        }
+        else {
+          return null;
+        }
+      };
 
       return (
         <View style={styles.headContainer}>
@@ -209,6 +296,7 @@ export class HomeScreen extends React.Component {
                 <Text style={styles.serviceItem}>{'\u2023 Blow Dryer'}</Text>
               </View>
             </View>
+            <MiniOfflineSign />
             <TouchableOpacity style={styles.button}
               onPress={() => this.setState({modalVisible: true})}>
               <Text style={styles.buttontext}>LOG IN</Text>
@@ -311,6 +399,19 @@ const styles = StyleSheet.create({
   logo: {
     marginTop: 0,
     paddingBottom: 10,
-  }
+  },
+  offlineContainer: {
+    backgroundColor: '#b52424',
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    width,
+    position: 'absolute',
+    bottom: 50
+  },
+  offlineText: { 
+    color: '#fff'
+  }  
 });
 //jshint ignore:end

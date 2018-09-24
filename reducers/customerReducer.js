@@ -2,7 +2,7 @@
 import * as types from '../actions/actionTypes';
 import initialState from '../stores/initialState';
 
-export default function customerReducer(state={}, action) {
+export default function customerReducer(state={}, action={}) {
     //console.log("\nCurrent state : " + JSON.stringify(state) + "\n");
     //console.log("\nAction Type (serviceReducer) : " + action.type + "\n");
 
