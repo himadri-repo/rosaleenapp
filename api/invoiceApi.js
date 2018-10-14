@@ -1,9 +1,13 @@
 //jshint esversion:6
 
 export default class invoiceApi {
-    static getInvoices() {
+    static getInvoices(qryURL) {
         let url = 'http://139.59.92.9:3000/invoices'; //put the service api url here
         //let url = 'http://10.0.2.2:4000/services'; //put the service api url here
+
+        if(qryURL) {
+            url = qryURL;
+        }
 
         //console.log("\nCalling service " + url + "\n");
         return new Promise((resolve, reject) => {
@@ -39,11 +43,15 @@ export default class invoiceApi {
             qryData = (qryData?qryData+'&':null) + ('active=' + qry.active);
         if(qry.totalValue)
             qryData = (qryData?qryData+'&':null) + ('totalValue=' + qry.totalValue);
+        /*if(qry.others)
+            qryData = (qryData?qryData+'&':null) + ('totalValue=' + qry.totalValue);*/
 
         if(qryData)
-            url += '?' + qryData;
+            url += '/?' + qryData;
 
         console.log(url);
+
+        return getInvoices(url);
     }
 }
 

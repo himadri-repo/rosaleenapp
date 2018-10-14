@@ -32,7 +32,7 @@ class SideMenu extends Component {
     });
     this.props.navigation.dispatch(navigateAction);
   }
-
+//https://media.licdn.com/dms/image/C5603AQEUrvvwkf1jOg/profile-displayphoto-shrink_200_200/0?e=1542240000&v=beta&t=Ry1WqHqSdS2UzwYTWb4L5C_jArm8RnIjmxDWn-bVwAw
   render () {
     return (
       <Container>
@@ -50,9 +50,10 @@ class SideMenu extends Component {
             <Image
               style={{ height: 80, width: 80, borderWidth: 1, borderColor: '#F44336', borderRadius: 40 }}
               source={{
-                uri: "https://media.licdn.com/dms/image/C5603AQEUrvvwkf1jOg/profile-displayphoto-shrink_200_200/0?e=1542240000&v=beta&t=Ry1WqHqSdS2UzwYTWb4L5C_jArm8RnIjmxDWn-bVwAw"
-              }}
-            />
+                uri: this.props.currentUser.profilepic
+              }}/>
+
+            <Text style={{marginLeft: 8, color: '#ffffff'}}>{this.props.currentUser.username}</Text>
           </ImageBackground>
           <List
             dataArray={routes}
@@ -80,6 +81,8 @@ SideMenu.propTypes = {
 
 function mapStateToProps(state, ownProps) {
   //console.log('cart [Services] : ' + JSON.stringify(state.cart));
+  //console.log("Current User : " + JSON.stringify(state.currentUser));
+
   return {
       ...state
   };

@@ -27,12 +27,14 @@ import {bindActionCreators} from 'redux';
 
 import {getCustomers, getCustomersByQuery} from '../../actions/customerActions';
 import {getInvoices, getInvoicesByQuery} from '../../actions/invoiceActions';
+import { SaleSummaryControl } from '../components/SaleSummaryControl';
+import { CustomerSummaryControl } from '../components/CustomerSummaryControl';
 
 YellowBox.ignoreWarnings(['Warning: isMounted(...) is deprecated'])
 //import Router from '../routes';
 //import {AppRegistry} from 'react-native';
 
-export class LandingScreen extends React.PureComponent {
+export class LandingScreen extends React.Component {
     constructor(props) {
         super(props);
         this.credentials = this.props.navigation.state.params.credentials;
@@ -42,7 +44,7 @@ export class LandingScreen extends React.PureComponent {
         //Alert.alert("Title", 'In Landing...');
 
         //console.log("Credentials : " + JSON.stringify(this.credentials));
-        //console.log("Profile : " + JSON.stringify(this.profile));
+        //console.log("Current User : " + JSON.stringify(this.props.currentUser));
         //this.props.actions.getInvoices();
         try
         {
@@ -52,22 +54,24 @@ export class LandingScreen extends React.PureComponent {
           console.log(e);
         }
 
-        AsyncStorage.setItem('credentials', JSON.stringify(this.credentials)).then(result => {
-          //console.log(`[credentials] Value saved to state ${result}`);
-        }).catch(reason=> {
-          //console.log('credentials:ERROR: ' + reason);
-        });
-        AsyncStorage.setItem('profile', JSON.stringify(this.profile)).then(result => {
-          //console.log(`[profile] Value saved to state ${result}`);
-        }).catch(reason=> {
-          //console.log('profile:ERROR: ' + reason);
-        });
+        // AsyncStorage.setItem('credentials', JSON.stringify(this.credentials)).then(result => {
+        //   //console.log(`[credentials] Value saved to state ${result}`);
+        // }).catch(reason=> {
+        //   //console.log('credentials:ERROR: ' + reason);
+        // });
+        // AsyncStorage.setItem('profile', JSON.stringify(this.profile)).then(result => {
+        //   console.log(`[profile] Value saved to state ${result}`);
+        // }).catch(reason=> {
+        //   //console.log('profile:ERROR: ' + reason);
+        // });
         //this.itemClicked = this.itemClicked.bind(this);
     }
 
     componentDidMount() {
       console.log(JSON.stringify(this.props.customers));
       this.state.customers = Object.assign([{}], this.props.customers);
+
+      //console.log("Current User : " + JSON.stringify(this.props.currentUser));
     }
 
     render () {
@@ -94,7 +98,8 @@ export class LandingScreen extends React.PureComponent {
                 backgroundColor="blue"
                 barStyle="light-content"/>
                 <View style={styles.container}>
-                    <Text>I am landing screen ({this.props.currentUser.username}) - {this.props.currentUser.type}</Text>
+                  <SaleSummaryControl style={{flex: 1}}/>
+                  <CustomerSummaryControl style={{flex: 1}}/>
                 </View>
                 <CustList />
             </View>
@@ -102,9 +107,12 @@ export class LandingScreen extends React.PureComponent {
     }
 }
 // <Text>{Object.prototype.toString.apply(this.props.customers)}</Text>
+// <Text>I am landing screen ({this.props.currentUser.username}) - {this.props.currentUser.type}</Text>
+
 
 function mapStateToProps(state, ownProps) {
   //console.log("mapState2Props : " + (state.currentUser) + " - " + state.currentUser.length);
+  //console.log("Current User : " + JSON.stringify(state.currentUser));
 
   return {
       ...state
@@ -122,10 +130,10 @@ export default connect(mapStateToProps, mapDispatchToProps)(withNavigationFocus(
 const styles = StyleSheet.create({
     container: {
       flex: 1,
-      flexDirection: 'row',
+      flexDirection: 'column',
       backgroundColor: '#fff',
       alignItems: 'flex-start',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-start',
       paddingLeft: 10,
       paddingRight: 10,
     },
