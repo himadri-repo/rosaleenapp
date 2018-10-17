@@ -15,7 +15,10 @@ import {
   FlatList,
   StatusBar,
   Alert,
-  AsyncStorage
+  AsyncStorage,
+  ScrollView,
+  RefreshControl,
+  Platform
 } from 'react-native';
 import {ListItem} from 'react-native-elements';
 import Icon from 'react-native-vector-icons'
@@ -26,9 +29,9 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
 import {getCustomers, getCustomersByQuery} from '../../actions/customerActions';
-import {getInvoices, getInvoicesByQuery} from '../../actions/invoiceActions';
-import { SaleSummaryControl } from '../components/SaleSummaryControl';
-import { CustomerSummaryControl } from '../components/CustomerSummaryControl';
+//import {getInvoices, getInvoicesByQuery} from '../../actions/invoiceActions';
+import SaleSummaryControl from '../components/SaleSummaryControl';
+import CustomerSummaryControl from '../components/CustomerSummaryControl';
 
 YellowBox.ignoreWarnings(['Warning: isMounted(...) is deprecated'])
 //import Router from '../routes';
@@ -39,7 +42,7 @@ export class LandingScreen extends React.Component {
         super(props);
         this.credentials = this.props.navigation.state.params.credentials;
         this.profile = this.props.navigation.state.params.profile;
-        this.state = {userlist: [{}], postlist: [{}], api: ''};
+        this.state = {userlist: [{}], postlist: [{}], api: '', refreshing: false};
         
         //Alert.alert("Title", 'In Landing...');
 
@@ -74,6 +77,17 @@ export class LandingScreen extends React.Component {
       //console.log("Current User : " + JSON.stringify(this.props.currentUser));
     }
 
+    onRefresh = () => {
+      this.setState({refreshing: true});
+      //this.props.actions.getServiceCategories();
+      this.saleSummaryControl.refresh();
+      this.customerSummaryControl.refresh();
+      this.setState({refreshing: false});
+      // .then(() => {
+      //   this.setState({refreshing: false});
+      // });
+    }
+
     render () {
         const CustList = (props) => {
           if(this.props.customers && this.props.customers.length>0) {
@@ -97,10 +111,15 @@ export class LandingScreen extends React.Component {
                 hidden={false}
                 backgroundColor="blue"
                 barStyle="light-content"/>
-                <View style={styles.container}>
-                  <SaleSummaryControl style={{flex: 1}}/>
-                  <CustomerSummaryControl style={{flex: 1}}/>
-                </View>
+                <ScrollView style={{backgroundColor: '#ffffff', flex: 1}} showsHorizontalScrollIndicator={false} 
+                  showsVerticalScrollIndicator={false} refreshControl={
+                    <RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} title='Refreshing...'/>
+                  }>
+                  <View style={styles.container}>
+                    <SaleSummaryControl style={{flex: 1}} ref={(salesummary) => this.saleSummaryControl = salesummary}/>
+                    <CustomerSummaryControl style={{flex: 1}} ref={(customerummary) => this.customerSummaryControl = customerummary}/>
+                  </View>
+                </ScrollView>
                 <CustList />
             </View>
         );
@@ -108,7 +127,6 @@ export class LandingScreen extends React.Component {
 }
 // <Text>{Object.prototype.toString.apply(this.props.customers)}</Text>
 // <Text>I am landing screen ({this.props.currentUser.username}) - {this.props.currentUser.type}</Text>
-
 
 function mapStateToProps(state, ownProps) {
   //console.log("mapState2Props : " + (state.currentUser) + " - " + state.currentUser.length);
@@ -120,8 +138,10 @@ function mapStateToProps(state, ownProps) {
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
+  //console.log('mapDispatchToProps - Landing Page called');
   return {
-      actions: bindActionCreators(Object.assign({}, {getCustomers}, {getCustomersByQuery}, {getInvoices}, {getInvoicesByQuery}), dispatch)
+      //actions: bindActionCreators(Object.assign({}, {getCustomers}, {getCustomersByQuery}, {getInvoices}, {getInvoicesByQuery}), dispatch)
+      actions: bindActionCreators(Object.assign({}, {getCustomers}, {getCustomersByQuery}), dispatch)
   }
 }
 

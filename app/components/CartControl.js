@@ -152,6 +152,7 @@ function mapStateToProps(state, ownProps) {
 }
 
 function mapDispatchToProps(dispatch, ownProps) {
+    //console.log('mapDispatchToProps - CartControl called');
     return {
         actions: bindActionCreators({updateCartSuccess}, dispatch),
         //cartActions: bindActionCreators({updateCart}, dispatch),

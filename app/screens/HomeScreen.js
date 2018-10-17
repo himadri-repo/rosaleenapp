@@ -56,7 +56,9 @@ export class HomeScreen extends React.Component {
     };
 
     handleConnectivityChange = (isConnected) => {
-      this.setState({ isConnected });
+      if(this.isMounted) {
+        this.setState({ isConnected });
+      }
 
       console.log("Is Connected: " + isConnected);
     }
@@ -71,7 +73,9 @@ export class HomeScreen extends React.Component {
       // });
       NetInfo.isConnected.fetch().then(isConnected => {
         console.log('First, is ' + (isConnected ? 'online' : 'offline'));
-        this.setState({ isConnected });
+        if(this.isMounted) {
+          this.setState({ isConnected });
+        }
       });      
 
       NetInfo.isConnected.addEventListener('connectionChange', this.handleConnectivityChange);
@@ -82,7 +86,9 @@ export class HomeScreen extends React.Component {
           console.log('Token in DidMount: ' + JSON.stringify(cred));
           if(cred && cred.credentials && cred.credentials.accessToken) {
             //console.log('Cred in Auto Login: ' + JSON.stringify(cred.credentials));
-            this.setState({loading: true});
+            if(this.isMounted) {
+              this.setState({loading: true});
+            }
             //this.authenticateUser(cred);
             this.realmLogin(cred);
           }
@@ -103,7 +109,9 @@ export class HomeScreen extends React.Component {
 
       //this.alert("Information","Logging in ...");
       //console.log("Logging in ... " + username + ' - ' + password);
-      this.setState({loading: true});
+      if(this.isMounted) {
+        this.setState({loading: true});
+      }
       auth0.auth
         .passwordRealm({
             username: username,
@@ -116,7 +124,9 @@ export class HomeScreen extends React.Component {
             this.authenticateUser({credentials, username, password});
         })
         .catch(error => {
-            this.setState({loading: false});
+            if(this.isMounted) {
+              this.setState({loading: false});
+            }
             if(error && error.json)
               this.alert('Error', error.json.error_description);
             else {
@@ -126,7 +136,9 @@ export class HomeScreen extends React.Component {
               {
                 console.log('Force redirecting: ');
                 this.props.actions.authorize(credInfo, this.state.profile);
-                this.setState({loading: false});
+                if(this.isMounted) {
+                  this.setState({loading: false});
+                }
                 this.props.navigation.navigate('TabLanding', {credentials: credInfo, profile: this.state.profile});
               }
             }
@@ -142,17 +154,23 @@ export class HomeScreen extends React.Component {
         .then(profile => {
             //this.props.onAuth(credentials, profile);
             this.props.actions.authorize(credential, profile);
-            this.setState({loading: false});
+            if(this.isMounted) {
+              this.setState({loading: false});
+            }
             this.props.navigation.navigate('TabLanding', {credentials: credential, profile: profile});
           })
         .catch(error => {
-          this.setState({loading: false});
+          if(this.isMounted) {
+            this.setState({loading: false});
+          }
           console.log ('Error : ' + error);
           Alert.alert('Error', 'Unable to auto login. Please login with your valid credential.');
         });
       }
       catch(error) {
-        this.setState({loading: false});
+        if(this.isMounted) {
+          this.setState({loading: false});
+        }
         console.log(error);
       }
     }
@@ -173,7 +191,7 @@ export class HomeScreen extends React.Component {
         let credential = await AsyncStorage.getItem(ACCESS_TOKEN).then(cred => {
           console.log(cred);
           cred = JSON.parse(cred);
-          if(cred.credential && cred.profile)
+          if(cred.credential && cred.profile && this.isMounted)
             this.setState({credential: cred.credential, profile: cred.profile});
 
           return cred.credential;
@@ -191,7 +209,7 @@ export class HomeScreen extends React.Component {
       try {
         let profile = await AsyncStorage.getItem(ACCESS_TOKEN).then(cred => {
           cred = JSON.parse(cred);
-          if(cred.credential && cred.profile)
+          if(cred.credential && cred.profile && this.isMounted)
             this.setState({credential: cred.credential, profile: cred.profile});
           
           return cred.profile;

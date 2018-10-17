@@ -11,7 +11,7 @@ export default function invoiceReducer(state={}, action={}) {
             //console.log("\nCurrent state [LOAD_SERVICES_SUCCESS] : " + JSON.stringify(state) + "\n");
             //console.log("\nServices state in [LOAD_SERVICES_SUCCESS] : " + JSON.stringify(action.payload) + "\n");
             //return Object.assign({}, state, {services: action.payload});
-            //console.log("\nData [LOAD_SERVICES_SUCCESS] : " + JSON.stringify(action.payload) + "\n");
+            //console.log("\nData [GET_INVOICES_SUCCESS] : " + JSON.stringify(action.payload) + "\n");
             return Object.assign([], state, action.payload);
 
             // return [

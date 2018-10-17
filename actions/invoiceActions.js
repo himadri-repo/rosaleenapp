@@ -25,8 +25,9 @@ export function getInvoices() {
 export function getInvoicesByQuery(query) {
     return (dispatch => {
         dispatch(startAjaxCall());
+        console.log('Query passed: ' + JSON.stringify(query));
         invoiceApi.getInvoicesByQuery(query).then(invoices => {
-            //console.log(JSON.stringify(rates));
+            //console.log('Invoices returned: ' + JSON.stringify(invoices));
             dispatch(getInvoicesSuccess(invoices));
         })
         .catch(error => {

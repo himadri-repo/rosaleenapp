@@ -13,9 +13,18 @@ export default class invoiceApi {
         return new Promise((resolve, reject) => {
             fetch(url)
             .then(response=> response.json())
-            .then(response=> {
-                //console.log("\nServiceApi : " + response + "\n");
-                resolve(response);
+            .then(result=> {
+                //console.log("\nInvoiceApi : " + result + "\n");
+                // for (let index = 0; index < result.length; index++) {
+                //     const inv = result[index];
+
+                //     console.log('Inv => ' + JSON.stringify(inv));
+                //     console.log('Inv.Date' + inv.date);
+                // }
+                // result.json().each((inv, idx) => {
+                //     console.log(inv.date);
+                // });
+                resolve(result);
             })
             .catch(reason=> reject(reason));
         });
@@ -27,31 +36,31 @@ export default class invoiceApi {
         let qry = queryObject;
 
         //let queryObj = new InvoiceQuery(qry.start, qry.end, qry.mobile, qry.name);
-        let qryData = null;
+        let qryData = '';
 
         if(qry.start)
-            qryData = (qryData?qryData+'&':null) + ('start=' + qry.start);
+            qryData = (qryData?qryData+'&':'') + ('start=' + qry.start);
         if(qry.end)
-            qryData = (qryData?qryData+'&':null) + ('end=' + qry.end);
+            qryData = (qryData?qryData+'&':'') + ('end=' + qry.end);
         if(qry.customer_mobile)
-            qryData = (qryData?qryData+'&':null) + ('customer.mobile=' + qry.customer_mobile);
+            qryData = (qryData?qryData+'&':'') + ('customer.mobile=' + qry.customer_mobile);
         if(qry.customer_name)
-            qryData = (qryData?qryData+'&':null) + ('customer.name=' + qry.customer_name);
+            qryData = (qryData?qryData+'&':'') + ('customer.name=' + qry.customer_name);
         if(qry.paymentMethod)
-            qryData = (qryData?qryData+'&':null) + ('paymentMethod=' + qry.paymentMethod);
+            qryData = (qryData?qryData+'&':'') + ('paymentMethod=' + qry.paymentMethod);
         if(qry.active)
-            qryData = (qryData?qryData+'&':null) + ('active=' + qry.active);
+            qryData = (qryData?qryData+'&':'') + ('active=' + qry.active);
         if(qry.totalValue)
-            qryData = (qryData?qryData+'&':null) + ('totalValue=' + qry.totalValue);
+            qryData = (qryData?qryData+'&':'') + ('totalValue=' + qry.totalValue);
         /*if(qry.others)
             qryData = (qryData?qryData+'&':null) + ('totalValue=' + qry.totalValue);*/
 
         if(qryData)
             url += '/?' + qryData;
 
-        console.log(url);
+        console.log('URL fired: ' + url);
 
-        return getInvoices(url);
+        return invoiceApi.getInvoices(url);
     }
 }
 
