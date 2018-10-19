@@ -40,8 +40,7 @@ Date.prototype.SubtractDays = function(numberOfDays) {
 }
 //end of utility methods
 
-
-export class SaleSummaryControl extends React.Component {
+export class CustomerSummaryControl extends React.Component {
     constructor(props) {
         super(props);
         this.state = { mode: 'pricereview', totalValue: this.props.TotalValue, serviceCount: 0, saleStat: {today: {totalValue: 0, cash: 0, card: 0}, month: {totalValue: 0, cash: 0, card: 0}}};
@@ -62,101 +61,116 @@ export class SaleSummaryControl extends React.Component {
 
     computeSalesState(invoices) {
         if(invoices==null) return;
-        let yesterdaySale = 0.0;
-        let todaysSale = 0.0;
-        let todayCashSale = 0.0;
-        let todayCardSale = 0.0;
-        let previousmonthsSale = 0.0;
-        let monthsSale = 0.0;
-        let monthsCashSale = 0.0;
-        let monthsCardSale = 0.0;
+        let yesterdayCustomer = 0;
+        let todaysCustomers = 0;
+        let todayNewCustomer = 0;
+        let todayRepeatCustomer = 0;
+        let previousmonthsCustomer = 0;
+        let monthsCustomer = 0;
+        let monthsNewCustomer = 0;
+        let monthsRepeatCustomer = 0;
 
-        let todayDate = new Date(2018, 8, 11); //hardcoded value
-        let previousDate = new Date(2018, 8, 11).SubtractDays(1);
-        let previousMonth = new Date(2018, 8, 11).SubtractMonth(1);
-        console.log('Today : ' + todayDate + ' == ' + todayDate.getDate() + ' - ' + (todayDate.getMonth()+1) + ' - ' + todayDate.getFullYear());
+        // let todayDate = new Date(2018, 8, 11); //hardcoded value
+        // let tomorrowDate = new Date(2018, 8, 12); //hardcoded value
+        // let previousDate = new Date(2018, 8, 11).SubtractDays(1);
+        // let previousMonth = new Date(2018, 8, 11).SubtractMonth(1);
+
+        let todayDate = new Date(); //hardcoded value
+        let tomorrowDate = new Date().setDate(todayDate.getDate()+1);
+        let previousDate = new Date().SubtractDays(1);
+        let previousMonth = new Date().SubtractMonth(1);
+
+        console.log('Today : ' + todayDate + ' == ' + tomorrowDate + ' == ' + todayDate.getDate() + ' - ' + (todayDate.getMonth()+1) + ' - ' + todayDate.getFullYear());
         console.log('Previous Day : ' + previousDate + ' == ' + previousDate.getDate() + ' - ' + (previousDate.getMonth()+1) + ' - ' + previousDate.getFullYear());
         console.log('Previous Month : ' + previousMonth + ' == ' + previousMonth.getDate() + ' - ' + (previousMonth.getMonth()+1) + ' - ' + previousMonth.getFullYear());
-
-        //console.log('computeSalesState: ' + (JSON.stringify(invoices)));
+        let customerInvoices = {};
+        console.log('Size of Invoices : ' + (invoices.length));
         for (let index = 0; index < invoices.length; index++) {
             inv = invoices[index];
             let invDate = new Date(inv.date);
 
+            if(invDate.getMonth()==todayDate.getMonth() && 
+                invDate.getFullYear()==todayDate.getFullYear()) 
+            {
+                customerInvoices[inv.customer.mobile] = parseInt('0'+customerInvoices[inv.customer.mobile])+1;
+            }
+
             console.log('Inv.Date: ' + inv.date + ' <-> Value: ' + inv.totalValue + ' == ' + invDate.getDate() + ' - ' + (invDate.getMonth()+1) + ' - ' + invDate.getFullYear());
             
-            //current day's sale
+            //current day's customer
             if( invDate.getDate()==todayDate.getDate() && 
                 invDate.getMonth()==todayDate.getMonth() && 
                 invDate.getFullYear()==todayDate.getFullYear()) 
             {
-                todaysSale += parseFloat(inv.totalValue);
-                if(inv.paymentMethod=='Cash') {
-                    todayCashSale += parseFloat(inv.totalValue);
+                todaysCustomers += 1;
+                if(customerInvoices[inv.customer.mobile]>1) {
+                    todayRepeatCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
                 }
-                else if(inv.paymentMethod=='Card') {
-                    todayCardSale += parseFloat(inv.totalValue);                   
+                else if(customerInvoices[inv.customer.mobile]==1) {
+                    todayNewCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
                 }
             }
 
-            //previous day's sale
+            //previous day's customer
             if( invDate.getDate()==previousDate.getDate() && 
                 invDate.getMonth()==previousDate.getMonth() && 
                 invDate.getFullYear()==previousDate.getFullYear()) 
             {
-                yesterdaySale += parseFloat(inv.totalValue);
+                yesterdayCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
             }
 
-            //month's sale
+            //month's customer
             if(invDate.getMonth()==todayDate.getMonth() && 
             invDate.getFullYear()==todayDate.getFullYear()) {
-                monthsSale += parseFloat(inv.totalValue);
-                if(inv.paymentMethod=='Cash') {
-                    monthsCashSale += parseFloat(inv.totalValue);
+                monthsCustomer = customerInvoices[inv.customer.mobile];
+                if(customerInvoices[inv.customer.mobile]>1) {
+                    monthsNewCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
                 }
-                else if(inv.paymentMethod=='Card') {
-                    monthsCardSale += parseFloat(inv.totalValue);
+                else if(customerInvoices[inv.customer.mobile]>1) {
+                    monthsRepeatCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
                 }
             }
 
             //previous month's sale
             if(invDate.getMonth()==previousMonth.getMonth() && 
             invDate.getFullYear()==previousMonth.getFullYear()) {
-                previousmonthsSale += parseFloat(inv.totalValue);
+                previousmonthsCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
             }
         }
 
-        let daySaleGrowth = 0;
-        let monthSaleGrowth = 0;
-        if(yesterdaySale>0 && todaysSale>0) {
-            daySaleGrowth = Math.round(((todaysSale-yesterdaySale)/yesterdaySale)*100);
+        console.log('Customer stat: ' + JSON.stringify(customerInvoices));
+
+        let dayCustomerGrowth = 0;
+        let monthCustomerGrowth = 0;
+        if(yesterdayCustomer>0 && todaysCustomers>0) {
+            dayCustomerGrowth = Math.round(((todaysCustomers-yesterdayCustomer)/yesterdayCustomer)*100);
         }
-        else if(todaysSale>0) {
-            daySaleGrowth = 100;
+        else if(todaysCustomers>0) {
+            dayCustomerGrowth = 100;
         }
         else {
-            daySaleGrowth = 0;
+            dayCustomerGrowth = 0;
         }
 
-        if(previousmonthsSale>0 && monthsSale>0) {
-            monthSaleGrowth = Math.round(((monthsSale-previousmonthsSale)/previousmonthsSale)*100); 
+        if(previousmonthsCustomer>0 && monthsCustomer>0) {
+            monthCustomerGrowth = Math.round(((monthsCustomer-previousmonthsCustomer)/previousmonthsCustomer)*100); 
         }
-        else if(monthsSale>0) {
-            monthSaleGrowth = 100;
+        else if(monthsCustomer>0) {
+            monthCustomerGrowth = 100;
         }
         else {
-            monthSaleGrowth = 0;
+            monthCustomerGrowth = 0;
         }
 
-        console.log(todaysSale + ' - ' + monthsSale + ' - ' + yesterdaySale + ' - ' + previousmonthsSale + ' - ' + daySaleGrowth + ' = ' + monthSaleGrowth);
+        console.log(todaysCustomers + ' - ' + monthsCustomer + ' - ' + yesterdayCustomer + ' - ' + previousmonthsCustomer + ' - ' + dayCustomerGrowth + ' = ' + monthCustomerGrowth);
 
         this.setState(Object.assign({}, {
-            saleStat: {'today': {totalValue: todaysSale, cash: todayCashSale, card: todayCardSale}, 
-            yesterday: yesterdaySale,
-            daySaleGrowth: daySaleGrowth,
-            month: {totalValue: monthsSale, cash: monthsCashSale, card: monthsCardSale}, 
-            previousmonth: previousmonthsSale,
-            monthSaleGrowth: monthSaleGrowth}
+            saleStat: {'today': {totalValue: todaysCustomers, cash: todayNewCustomer, card: todayRepeatCustomer}, 
+            yesterday: yesterdayCustomer,
+            daySaleGrowth: dayCustomerGrowth,
+            month: {totalValue: monthsCustomer, cash: monthsNewCustomer, card: monthsRepeatCustomer}, 
+            previousmonth: previousmonthsCustomer,
+            monthSaleGrowth: monthCustomerGrowth}
         }));
     }
 
@@ -199,7 +213,8 @@ export class SaleSummaryControl extends React.Component {
         console.log('Next Query Date :' + dateFilter.end);
         //console.log('getInvoicesByQuery : ' + JSON.stringify(this.props.actions.getInvoicesByQuery));
         //this.props.actions.getInvoicesByQuery({start: dateFilter.start, end: dateFilter.end});
-        this.props.actions.getInvoicesByQuery({start: '08/01/2018', end: '10/01/2018'});
+        //this.props.actions.getInvoicesByQuery({start: '08/01/2018', end: '10/01/2018'});
+        this.props.actions.getInvoicesByQuery({end: dateFilter.end});
         console.log('getInvoicesByQuery returned value ...');
     }
 
@@ -238,8 +253,8 @@ export class SaleSummaryControl extends React.Component {
                                     <Text style={{flex:1, fontSize: 18, textAlignVertical: 'center', fontFamily: 'Georgia,"Times New Roman",Times,serif', color: '#ffffff'}}>{this.state.saleStat.month.totalValue}</Text>
                                 </View>
                                 <View style={{alignItems: 'flex-start', padding: 5, flex:1, flexDirection: 'row', backgroundColor: '#edeef0'}}>
-                                    <Text style={{flex: 1, textAlign: 'left', fontSize: 18, color: '#000000'}}>Cash: {this.state.saleStat.month.cash}</Text>
-                                    <Text style={{flex: 1, textAlign: 'right', fontSize: 18, color: '#000000'}}>Card: {this.state.saleStat.month.card}</Text>
+                                    <Text style={{flex: 1, textAlign: 'left', fontSize: 18, color: '#000000'}}>New: {this.state.saleStat.month.cash}</Text>
+                                    <Text style={{flex: 1, textAlign: 'right', fontSize: 18, color: '#000000'}}>Repeat: {this.state.saleStat.month.card}</Text>
                                 </View>
                             </View>
                             <View style={{alignItems: 'center', flex:1, justifyContent: 'center', flexDirection: 'row'}}>
@@ -266,7 +281,7 @@ function mapDispatchToProps(dispatch, ownProps) {
     }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(withNavigationFocus(SaleSummaryControl));
+export default connect(mapStateToProps, mapDispatchToProps)(withNavigationFocus(CustomerSummaryControl));
 
 const styles = StyleSheet.create({
     menuIcon: {

@@ -81,6 +81,7 @@ export class SaleSummaryControl extends React.Component {
         // let todayDate = new Date(2018, 8, 11); //hardcoded value
         // let previousDate = new Date(2018, 8, 11).SubtractDays(1);
         // let previousMonth = new Date(2018, 8, 11).SubtractMonth(1);
+        
         let todayDate = new Date(); //hardcoded value
         let previousDate = new Date().SubtractDays(1);
         let previousMonth = new Date().SubtractMonth(1);

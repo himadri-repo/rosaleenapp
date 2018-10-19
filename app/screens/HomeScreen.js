@@ -109,9 +109,9 @@ export class HomeScreen extends React.Component {
 
       //this.alert("Information","Logging in ...");
       //console.log("Logging in ... " + username + ' - ' + password);
-      if(this.isMounted) {
+      //if(this.isMounted) {
         this.setState({loading: true});
-      }
+      //}
       auth0.auth
         .passwordRealm({
             username: username,
@@ -124,9 +124,9 @@ export class HomeScreen extends React.Component {
             this.authenticateUser({credentials, username, password});
         })
         .catch(error => {
-            if(this.isMounted) {
+            //if(this.isMounted) {
               this.setState({loading: false});
-            }
+            //}
             if(error && error.json)
               this.alert('Error', error.json.error_description);
             else {
@@ -136,9 +136,9 @@ export class HomeScreen extends React.Component {
               {
                 console.log('Force redirecting: ');
                 this.props.actions.authorize(credInfo, this.state.profile);
-                if(this.isMounted) {
+                //if(this.isMounted) {
                   this.setState({loading: false});
-                }
+                //}
                 this.props.navigation.navigate('TabLanding', {credentials: credInfo, profile: this.state.profile});
               }
             }
@@ -154,23 +154,23 @@ export class HomeScreen extends React.Component {
         .then(profile => {
             //this.props.onAuth(credentials, profile);
             this.props.actions.authorize(credential, profile);
-            if(this.isMounted) {
+            //if(this.isMounted) {
               this.setState({loading: false});
-            }
+            //}
             this.props.navigation.navigate('TabLanding', {credentials: credential, profile: profile});
           })
         .catch(error => {
-          if(this.isMounted) {
+          //if(this.isMounted) {
             this.setState({loading: false});
-          }
+          //}
           console.log ('Error : ' + error);
           Alert.alert('Error', 'Unable to auto login. Please login with your valid credential.');
         });
       }
       catch(error) {
-        if(this.isMounted) {
+        //if(this.isMounted) {
           this.setState({loading: false});
-        }
+        //}
         console.log(error);
       }
     }
@@ -191,7 +191,7 @@ export class HomeScreen extends React.Component {
         let credential = await AsyncStorage.getItem(ACCESS_TOKEN).then(cred => {
           console.log(cred);
           cred = JSON.parse(cred);
-          if(cred.credential && cred.profile && this.isMounted)
+          if(cred.credential && cred.profile)
             this.setState({credential: cred.credential, profile: cred.profile});
 
           return cred.credential;
@@ -209,7 +209,7 @@ export class HomeScreen extends React.Component {
       try {
         let profile = await AsyncStorage.getItem(ACCESS_TOKEN).then(cred => {
           cred = JSON.parse(cred);
-          if(cred.credential && cred.profile && this.isMounted)
+          if(cred.credential && cred.profile)
             this.setState({credential: cred.credential, profile: cred.profile});
           
           return cred.profile;

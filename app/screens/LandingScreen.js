@@ -126,6 +126,8 @@ export class LandingScreen extends React.Component {
     }
 }
 // <Text>{Object.prototype.toString.apply(this.props.customers)}</Text>
+// <CustomerSummaryControl style={{flex: 1}} ref={(customerummary) => this.customerSummaryControl = customerummary}/>
+
 // <Text>I am landing screen ({this.props.currentUser.username}) - {this.props.currentUser.type}</Text>
 
 function mapStateToProps(state, ownProps) {
