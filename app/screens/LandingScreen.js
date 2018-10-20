@@ -38,14 +38,12 @@ YellowBox.ignoreWarnings(['Warning: isMounted(...) is deprecated'])
 //import {AppRegistry} from 'react-native';
 
 export class LandingScreen extends React.PureComponent {
-    self = null;
     constructor(props) {
         super(props);
         this.credentials = this.props.navigation.state.params.credentials;
         this.profile = this.props.navigation.state.params.profile;
         this.state = {userlist: [{}], postlist: [{}], api: '', refreshing: false};
 
-        self = this;
         //this.onRefresh = this.onRefresh.bind(this);
 
         //Alert.alert("Title", 'In Landing...');
@@ -75,6 +73,7 @@ export class LandingScreen extends React.PureComponent {
     }
 
     componentDidMount() {
+      //this.props.onRef(this);
       console.log(JSON.stringify(this.props.customers));
       this.state.customers = Object.assign([{}], this.props.customers);
 
@@ -129,11 +128,10 @@ export class LandingScreen extends React.PureComponent {
                     <RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} title='Refreshing...'/>
                   }>
                   <View style={styles.container}>
-                    <SaleSummaryControl style={{flex: 1}} ref={(ref) => this.salesControl = ref}/>
+                    <SaleSummaryControl style={{flex: 1}} onRef={ref => this.salesControl = ref }/>
                     <CustomerSummaryControl style={{flex: 1}} ref={(customerummary) => this.customerSummaryControl = customerummary}/>
                   </View>
                 </ScrollView>
-                <CustList />
             </View>
         );
     }
@@ -141,6 +139,7 @@ export class LandingScreen extends React.PureComponent {
 // <Text>{Object.prototype.toString.apply(this.props.customers)}</Text>
 // <CustomerSummaryControl style={{flex: 1}} ref={(customerummary) => this.customerSummaryControl = customerummary}/>
 // <CustomerSummaryControl style={{flex: 1}} ref={(customerummary) => this.customerSummaryControl = customerummary}/>
+// <CustList />
 
 // <Text>I am landing screen ({this.props.currentUser.username}) - {this.props.currentUser.type}</Text>
 

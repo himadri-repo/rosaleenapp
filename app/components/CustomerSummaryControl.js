@@ -46,6 +46,8 @@ export class CustomerSummaryControl extends React.Component {
         this.state = { mode: 'pricereview', totalValue: this.props.TotalValue, serviceCount: 0, saleStat: {today: {totalValue: 0, cash: 0, card: 0}, month: {totalValue: 0, cash: 0, card: 0}}};
         this.getSalesByDate = this.getSalesByDate.bind(this);
         this.getDate = this.getDate.bind(this);
+
+        this.invoiceUpdated = false;
     }
 
     componentDidMount = () => {
@@ -54,8 +56,9 @@ export class CustomerSummaryControl extends React.Component {
 
     componentWillReceiveProps = (newprops) => {
         //console.log('componentWillReceiveProps : ' + JSON.stringify(newprops.invoices));
-        if(newprops.invoices!=null) {
+        if(newprops.invoices!=null && newprops.invoices.length>0 && !this.invoiceUpdated) {
             this.computeSalesState(newprops.invoices);
+            this.invoiceUpdated = true;
         }
     }
 
@@ -107,7 +110,7 @@ export class CustomerSummaryControl extends React.Component {
                     todayRepeatCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
                 }
                 else if(customerInvoices[inv.customer.mobile]==1) {
-                    todayNewCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
+                    todayNewCustomer += parseInt('0' + customerInvoices[inv.customer.mobile]);
                 }
             }
 
@@ -127,7 +130,7 @@ export class CustomerSummaryControl extends React.Component {
                     monthsNewCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
                 }
                 else if(customerInvoices[inv.customer.mobile]>1) {
-                    monthsRepeatCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
+                    monthsRepeatCustomer += parseInt('0' + customerInvoices[inv.customer.mobile]);
                 }
             }
 
@@ -204,6 +207,7 @@ export class CustomerSummaryControl extends React.Component {
     }
 
     async refresh() {
+        this.invoiceUpdated = false;
         console.log('Sale summary control refreshed ...');
         this.getSalesByDate(this.getDate());
     }
