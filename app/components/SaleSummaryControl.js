@@ -41,22 +41,27 @@ Date.prototype.SubtractDays = function(numberOfDays) {
 //end of utility methods
 
 
-export class SaleSummaryControl extends React.Component {
+export class SaleSummaryControl extends React.PureComponent {
     constructor(props) {
         super(props);
         this.state = { mode: 'pricereview', totalValue: this.props.TotalValue, serviceCount: 0, saleStat: {today: {totalValue: 0, cash: 0, card: 0}, month: {totalValue: 0, cash: 0, card: 0}}};
         this.getSalesByDate = this.getSalesByDate.bind(this);
         this.getDate = this.getDate.bind(this);
+        this.refresh = this.refresh.bind(this);
+        this.show = this.show.bind(this);
+        this.invoiceUpdated = false;
     }
 
     componentDidMount = () => {
         this.getSalesByDate(this.getDate());
     }
 
+    
     componentWillReceiveProps = (newprops) => {
         //console.log('componentWillReceiveProps : ' + JSON.stringify(newprops.invoices));
-        if(newprops.invoices!=null) {
+        if(newprops.invoices!=null && newprops.invoices.length>0 && !this.invoiceUpdated) {
             this.computeSalesState(newprops.invoices);
+            this.invoiceUpdated = true;
         }
     }
 
@@ -201,7 +206,12 @@ export class SaleSummaryControl extends React.Component {
         }
     }
 
+    show = () => {
+        console.log('I am show of SalesSummaryControl');
+    }
+
     async refresh() {
+        this.invoiceUpdated = false;
         console.log('Sale summary control refreshed ...');
         this.getSalesByDate(this.getDate());
     }
@@ -255,7 +265,7 @@ export class SaleSummaryControl extends React.Component {
                                 </View>
                             </View>
                             <View style={{alignItems: 'center', flex:1, justifyContent: 'center', flexDirection: 'row'}}>
-                            <Icon style={this.state.saleStat.daySaleGrowth>0?styles.uparrow:styles.downarrow} name={this.state.saleStat.daySaleGrowth>0?'md-arrow-up':'md-arrow-down'} title="Value higher than previous month/day" size={25} onPress={ () => console.log('up arrow clicked') } />
+                                <Icon style={this.state.saleStat.monthSaleGrowth>0?styles.uparrow:styles.downarrow} name={this.state.saleStat.monthSaleGrowth>0?'md-arrow-up':'md-arrow-down'} title="Value higher than previous month/day" size={25} onPress={ () => console.log('up arrow clicked') } />
                                 <Text style={{textAlign: 'center', fontSize: 24, fontWeight:"800", color: '#0000ff'}}>{this.state.saleStat.monthSaleGrowth}%</Text>
                             </View>
                         </View>

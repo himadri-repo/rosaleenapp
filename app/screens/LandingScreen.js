@@ -37,13 +37,17 @@ YellowBox.ignoreWarnings(['Warning: isMounted(...) is deprecated'])
 //import Router from '../routes';
 //import {AppRegistry} from 'react-native';
 
-export class LandingScreen extends React.Component {
+export class LandingScreen extends React.PureComponent {
+    self = null;
     constructor(props) {
         super(props);
         this.credentials = this.props.navigation.state.params.credentials;
         this.profile = this.props.navigation.state.params.profile;
         this.state = {userlist: [{}], postlist: [{}], api: '', refreshing: false};
-        
+
+        self = this;
+        //this.onRefresh = this.onRefresh.bind(this);
+
         //Alert.alert("Title", 'In Landing...');
 
         //console.log("Credentials : " + JSON.stringify(this.credentials));
@@ -78,10 +82,19 @@ export class LandingScreen extends React.Component {
     }
 
     onRefresh = () => {
+    //onRefresh() {
       this.setState({refreshing: true});
+
       //this.props.actions.getServiceCategories();
-      this.saleSummaryControl.refresh();
-      this.customerSummaryControl.refresh();
+      console.log('Refresh called :' + (typeof this.salesControl));
+      if(this.salesControl && this.salesControl.show) {
+        this.salesControl.show();
+      }
+      else {
+        console.log('ref of salesControl not found');
+      }
+      //this.customerSummaryControl.refresh();
+      
       this.setState({refreshing: false});
       // .then(() => {
       //   this.setState({refreshing: false});
@@ -116,7 +129,7 @@ export class LandingScreen extends React.Component {
                     <RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} title='Refreshing...'/>
                   }>
                   <View style={styles.container}>
-                    <SaleSummaryControl style={{flex: 1}} ref={(salesummary) => this.saleSummaryControl = salesummary}/>
+                    <SaleSummaryControl style={{flex: 1}} ref={(ref) => this.salesControl = ref}/>
                     <CustomerSummaryControl style={{flex: 1}} ref={(customerummary) => this.customerSummaryControl = customerummary}/>
                   </View>
                 </ScrollView>
@@ -126,6 +139,7 @@ export class LandingScreen extends React.Component {
     }
 }
 // <Text>{Object.prototype.toString.apply(this.props.customers)}</Text>
+// <CustomerSummaryControl style={{flex: 1}} ref={(customerummary) => this.customerSummaryControl = customerummary}/>
 // <CustomerSummaryControl style={{flex: 1}} ref={(customerummary) => this.customerSummaryControl = customerummary}/>
 
 // <Text>I am landing screen ({this.props.currentUser.username}) - {this.props.currentUser.type}</Text>

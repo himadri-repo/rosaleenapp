@@ -123,7 +123,7 @@ export class CustomerSummaryControl extends React.Component {
             if(invDate.getMonth()==todayDate.getMonth() && 
             invDate.getFullYear()==todayDate.getFullYear()) {
                 monthsCustomer = customerInvoices[inv.customer.mobile];
-                if(customerInvoices[inv.customer.mobile]>1) {
+                if(customerInvoices[inv.customer.mobile]==1) {
                     monthsNewCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
                 }
                 else if(customerInvoices[inv.customer.mobile]>1) {
@@ -258,7 +258,7 @@ export class CustomerSummaryControl extends React.Component {
                                 </View>
                             </View>
                             <View style={{alignItems: 'center', flex:1, justifyContent: 'center', flexDirection: 'row'}}>
-                            <Icon style={this.state.saleStat.daySaleGrowth>0?styles.uparrow:styles.downarrow} name={this.state.saleStat.daySaleGrowth>0?'md-arrow-up':'md-arrow-down'} title="Value higher than previous month/day" size={25} onPress={ () => console.log('up arrow clicked') } />
+                                <Icon style={this.state.saleStat.monthSaleGrowth>0?styles.uparrow:styles.downarrow} name={this.state.saleStat.monthSaleGrowth>0?'md-arrow-up':'md-arrow-down'} title="Value higher than previous month/day" size={25} onPress={ () => console.log('up arrow clicked') } />
                                 <Text style={{textAlign: 'center', fontSize: 24, fontWeight:"800", color: '#0000ff'}}>{this.state.saleStat.monthSaleGrowth}%</Text>
                             </View>
                         </View>

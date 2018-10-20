@@ -19,6 +19,7 @@ export default class cartApi {
 
     static saveCart(cart) {
         let url = 'http://139.59.92.9:3000/invoices'; //put the service api url here
+        //let url = 'http://10.0.2.2:4000/invoices'; //put the service api url here
 
         return new Promise((resolve, reject) => {
             fetch(url, {
@@ -31,7 +32,8 @@ export default class cartApi {
             })
             //.then(response=>response.json())
             .then(response=> {
-                console.log('Save Cart response -> ' + JSON.stringify(response));
+                console.log('Save Cart response -> ' + response);
+                //console.log('Save Cart response -> ' + JSON.stringify(response));
                 resolve(response);
             })
             .catch(reason=> {
