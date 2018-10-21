@@ -55,6 +55,14 @@ export class CustomerSummaryControl extends React.Component {
     }
 
     componentWillReceiveProps = (newprops) => {
+
+        if(newprops.refresh!==this.props.refresh) {
+            //this.computeSalesState(newprops.invoices);
+            this.getSalesByDate(this.getDate());
+            this.invoiceUpdated = false;
+            console.log('Refreshing customer summary ....');
+        }
+
         //console.log('componentWillReceiveProps : ' + JSON.stringify(newprops.invoices));
         if(newprops.invoices!=null && newprops.invoices.length>0 && !this.invoiceUpdated) {
             this.computeSalesState(newprops.invoices);
@@ -107,10 +115,12 @@ export class CustomerSummaryControl extends React.Component {
             {
                 todaysCustomers += 1;
                 if(customerInvoices[inv.customer.mobile]>1) {
-                    todayRepeatCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
+                    //todayRepeatCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
+                    todayRepeatCustomer += 1;
                 }
                 else if(customerInvoices[inv.customer.mobile]==1) {
-                    todayNewCustomer += parseInt('0' + customerInvoices[inv.customer.mobile]);
+                    //todayNewCustomer += parseInt('0' + customerInvoices[inv.customer.mobile]);
+                    todayNewCustomer += 1;
                 }
             }
 
@@ -119,25 +129,29 @@ export class CustomerSummaryControl extends React.Component {
                 invDate.getMonth()==previousDate.getMonth() && 
                 invDate.getFullYear()==previousDate.getFullYear()) 
             {
-                yesterdayCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
+                //yesterdayCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
+                yesterdayCustomer += 1;
             }
 
             //month's customer
             if(invDate.getMonth()==todayDate.getMonth() && 
             invDate.getFullYear()==todayDate.getFullYear()) {
-                monthsCustomer = customerInvoices[inv.customer.mobile];
+                monthsCustomer += 1; //customerInvoices[inv.customer.mobile];
                 if(customerInvoices[inv.customer.mobile]==1) {
-                    monthsNewCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
+                    //monthsNewCustomer += parseInt('0' + customerInvoices[inv.customer.mobile]);
+                    monthsNewCustomer += 1;
                 }
                 else if(customerInvoices[inv.customer.mobile]>1) {
-                    monthsRepeatCustomer += parseInt('0' + customerInvoices[inv.customer.mobile]);
+                    //monthsRepeatCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
+                    monthsRepeatCustomer += 1;
                 }
             }
 
             //previous month's sale
             if(invDate.getMonth()==previousMonth.getMonth() && 
             invDate.getFullYear()==previousMonth.getFullYear()) {
-                previousmonthsCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
+                //previousmonthsCustomer = parseInt('0' + customerInvoices[inv.customer.mobile]);
+                previousmonthsCustomer += 1;
             }
         }
 

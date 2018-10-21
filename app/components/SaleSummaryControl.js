@@ -59,6 +59,12 @@ export class SaleSummaryControl extends React.PureComponent {
     
     componentWillReceiveProps = (newprops) => {
         //console.log('componentWillReceiveProps : ' + JSON.stringify(newprops.invoices));
+        if(newprops.refresh!==this.props.refresh) {
+            this.getSalesByDate(this.getDate());
+            this.invoiceUpdated = false;
+            console.log('Refreshing sales summary ....');
+        }
+
         if(newprops.invoices!=null && newprops.invoices.length>0 && !this.invoiceUpdated) {
             this.computeSalesState(newprops.invoices);
             this.invoiceUpdated = true;

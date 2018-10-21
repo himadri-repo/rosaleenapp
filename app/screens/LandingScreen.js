@@ -23,7 +23,7 @@ import {
 import {ListItem} from 'react-native-elements';
 import Icon from 'react-native-vector-icons'
 import { YellowBox } from 'react-native'
-import {withNavigationFocus} from 'react-navigation';
+import {withNavigationFocus, NavigationEvents} from 'react-navigation';
 //redux
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
@@ -42,8 +42,10 @@ export class LandingScreen extends React.PureComponent {
         super(props);
         this.credentials = this.props.navigation.state.params.credentials;
         this.profile = this.props.navigation.state.params.profile;
-        this.state = {userlist: [{}], postlist: [{}], api: '', refreshing: false};
+        this.state = {userlist: [{}], postlist: [{}], api: '', refreshing: false, 
+            refreshSalesSummary: new Date(), refreshCustomerSummary: new Date()};
 
+        //this.props.refreshSalesSummary = new Date();
         //this.onRefresh = this.onRefresh.bind(this);
 
         //Alert.alert("Title", 'In Landing...');
@@ -74,6 +76,7 @@ export class LandingScreen extends React.PureComponent {
 
     componentDidMount() {
       //this.props.onRef(this);
+      
       console.log(JSON.stringify(this.props.customers));
       this.state.customers = Object.assign([{}], this.props.customers);
 
@@ -86,12 +89,15 @@ export class LandingScreen extends React.PureComponent {
 
       //this.props.actions.getServiceCategories();
       console.log('Refresh called :' + (typeof this.salesControl));
-      if(this.salesControl && this.salesControl.show) {
-        this.salesControl.show();
-      }
-      else {
-        console.log('ref of salesControl not found');
-      }
+      this.setState({refreshSalesSummary: new Date()});
+      this.setState({refreshCustomerSummary: new Date()});
+
+      // if(this.salesControlRef && this.salesControlRef.current && this.salesControlRef.current.show) {
+      //   this.salesControlRef.current.show();
+      // }
+      // else {
+      //   console.log('ref of salesControl not found');
+      // }
       //this.customerSummaryControl.refresh();
       
       this.setState({refreshing: false});
@@ -128,8 +134,8 @@ export class LandingScreen extends React.PureComponent {
                     <RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} title='Refreshing...'/>
                   }>
                   <View style={styles.container}>
-                    <SaleSummaryControl style={{flex: 1}} onRef={ref => this.salesControl = ref }/>
-                    <CustomerSummaryControl style={{flex: 1}} ref={(customerummary) => this.customerSummaryControl = customerummary}/>
+                    <SaleSummaryControl style={{flex: 1}} refresh={this.state.refreshSalesSummary}/>
+                    <CustomerSummaryControl style={{flex: 1}} refresh={this.state.refreshCustomerSummary}/>
                   </View>
                 </ScrollView>
             </View>
