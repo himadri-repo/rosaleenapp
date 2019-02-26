@@ -128,7 +128,7 @@ const ServicesScreenStack = createStackNavigator({
       headerStyle: {
         backgroundColor: '#2424de',
       },
-      gesturesEnabled: true,
+      gesturesEnabled: false,
       // tabBarOnPress: (tab, jumpToIndex) => {
       //   console.log("\ntabBarOnPress :: " + JSON.stringify(tab));
       //   jumpToIndex(tab.index)
@@ -152,7 +152,7 @@ const ServicesScreenStack = createStackNavigator({
   }),
   transitionConfig: (sceneProps) => ({
     transitionSpec: {
-      duration: 300,
+      duration: 500,
       easing: Easing.out(Easing.poly(4)),
       timing: Animated.timing,
     },
@@ -221,14 +221,14 @@ const TabVab = createBottomTabNavigator({
     },*/
     title: 'Dashboard'
   }) },
-  Services: { screen: ServicesScreenStack, navigationOptions: ({navigation}) => ({
-    title: 'Services',
-  }) },
   Offers: { screen: OfferScreenStack , navigationOptions: ({navigation}) => ({
     /*tabBarOnPress: (previousScene, scene, jumpToIndex) => {
       console.log("\ntabBarOnPress: " + scene + "\n");
     },*/
     title: 'Offers'
+  }) },
+  Services: { screen: ServicesScreenStack, navigationOptions: ({navigation}) => ({
+    title: 'Services',
   }) },
   Search: { screen: SearchScreenStack , navigationOptions: ({navigation}) => ({
     /*tabBarOnPress: (previousScene, scene, jumpToIndex) => {
@@ -276,7 +276,7 @@ const TabVab = createBottomTabNavigator({
       }
     },
   }),
-  lazy: false,
+  lazy: true, 
   /*lazyLoad: false,*/
   tabBarPosition: 'bottom',
   tabBarOptions: {

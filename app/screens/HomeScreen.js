@@ -157,7 +157,9 @@ export class HomeScreen extends React.Component {
             //if(this.isMounted) {
               this.setState({loading: false});
             //}
+            console.log('I am changing to Dashboard');
             this.props.navigation.navigate('TabLanding', {credentials: credential, profile: profile});
+            //this.props.navigation.navigate('Dashboard', {credentials: credential, profile: profile});
           })
         .catch(error => {
           //if(this.isMounted) {
